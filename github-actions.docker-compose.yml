@@ -1,0 +1,39 @@
+version: '3.8'
+
+volumes:
+  mysql: {}
+
+services:
+  mysql:
+    container_name: mysql
+    image: mysql:8.1
+    volumes:
+      - mysql:/var/lib/mysql
+    environment:
+      - MYSQL_ROOT_PASSWORD=jurin!10
+      - MYSQL_DATABASE=jurin
+      - MYSQL_USER=jurin
+      - MYSQL_PASSWORD=jurin!10
+      - TZ=Asia/Seoul
+    command:
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
+    ports:
+      - "3306:3306"
+    restart: on-failure
+
+  django:
+    container_name: django
+    build:
+      context: .
+      dockerfile: docker/dev.Dockerfile
+    environment:
+      - GITHUB_WORKFLOW=True
+    entrypoint: sh -c "poetry run python manage.py collectstatic --no-input && poetry run python manage.py migrate && poetry run gunicorn config.wsgi --workers=5 -b 0.0.0.0:8000"
+    volumes:
+      - .:/app
+    ports:
+      - "8000:8000"
+    depends_on:
+      - mysql
+    restart: on-failure

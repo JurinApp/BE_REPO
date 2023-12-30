@@ -1,0 +1,48 @@
+[tool.poetry]
+name = "jurin"
+version = "0.1.0"
+description = ""
+authors = ["SaJH <wogur981208@gmail.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.11"
+django = "^5.0"
+djangorestframework = "3.14.0"
+djangorestframework-simplejwt = "5.3.0"
+djangorestframework-camel-case = "1.4.2"
+django-environ = "^0.11.2"
+pymysql = "^1.1.0"
+drf-yasg = "^1.21.7"
+django-cors-headers = "^4.3.1"
+gunicorn = "^21.2.0"
+cryptography = "^41.0.7"
+
+[tool.poetry.group.dev.dependencies]
+mypy = "^1.5.1"
+
+django-stubs = "^4.2.4"
+djangorestframework-stubs = "^3.14.2"
+
+django-debug-toolbar = "^4.2.0"
+drf-yasg-stubs = "^0.1.4"
+
+flake8 = "^6.1.0"
+isort = "^5.12.0"
+black = "^23.9.1"
+pre-commit = "^3.4.0"
+coverage = "^7.3.2"
+
+[tool.black]
+line-length = 140
+target-version = ['py311']
+force-exclude = 'migrations'
+
+[tool.isort]
+profile = "black"
+filter_files = true
+skip_glob = ["*/migrations/*", "config/*"]
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

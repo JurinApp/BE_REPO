@@ -1,0 +1,53 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [ "develop", "main" ]
+
+jobs:
+  django-format-lint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Build docker
+        run: docker compose -f github-actions.docker-compose.yml build
+
+      - name: Create env file
+        env:
+          DJANGO_TEST_ENV: ${{ secrets.DJANGO_TEST_ENV }}
+        run: |
+          touch .env.django
+          echo "$DJANGO_TEST_ENV" >> .env.django
+
+      - name: Run isort
+        run: docker compose -f github-actions.docker-compose.yml run django poetry run isort jurin/ --check
+
+      - name: Run black
+        run: docker compose -f github-actions.docker-compose.yml run django poetry run black jurin/ --check
+
+      - name: Run flake8
+        run: docker compose -f github-actions.docker-compose.yml run django poetry run flake8
+
+      - name: Run mypy
+        run: docker compose -f github-actions.docker-compose.yml run django poetry run mypy --config mypy.ini jurin/
+
+  django-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Create env file
+        env:
+          DJANGO_TEST_ENV: ${{ secrets.DJANGO_TEST_ENV }}
+        run: |
+          touch .env.django
+          echo "$DJANGO_TEST_ENV" >> .env.django
+
+      - name: Build docker
+        run: docker compose -f github-actions.docker-compose.yml build
+
+      - name: Run tests
+        run: docker compose -f github-actions.docker-compose.yml run django poetry run coverage run manage.py test && coverage report --fail-under=90

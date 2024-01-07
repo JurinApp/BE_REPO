@@ -44,21 +44,22 @@ class SwaggerSetup:
 
         schema_view = get_schema_view(
             openapi.Info(
-                title="Dump-In App API",
+                title="Jurin App API",
                 default_version="v1",
                 description=(
-                    "자세한 문서는 [여기](https://secret-leech-e86.notion.site/83a2515a34b74557a46a0da84d7a0f9e?"
-                    "v=e236b67907a84fb0ae8d49ef1c28dc96&pvs=4)를 참고해주세요."
+                    "자세한 문서는 [여기](https://battle-tsunami-580.notion.site/7"
+                    "d57896248024ae68e51d969e04400b3?v=fa3c77ffa17f43e2a2afe96640c752ad&pvs=4"
+                    ")를 참고해주세요."
                 ),
                 terms_of_service="",
                 contact=openapi.Contact(email="wogur981208@gmail.com"),
-                license=openapi.License(name="Pix Team"),
+                license=openapi.License(name="Jurin Team"),
             ),
             public=True,
             permission_classes=(AllowAny,),
         )
 
         return urlpatterns + [
-            path("app/swagger/docs", schema_view.with_ui("swagger", cache_timeout=0), name="app-schema-swagger-ui"),
-            path("app/swagger/redoc", schema_view.with_ui("redoc", cache_timeout=0), name="app-schema-redoc"),
+            path("swagger/docs", schema_view.with_ui("swagger", cache_timeout=0), name="app-schema-swagger-ui"),
+            path("swagger/redoc", schema_view.with_ui("redoc", cache_timeout=0), name="app-schema-redoc"),
         ]

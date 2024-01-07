@@ -16,6 +16,7 @@ SIMPLE_JWT = {
     "ISSUER": None,
     "JWK_URL": None,
     "LEEWAY": 0,
+    "TOKEN_OBTAIN_SERIALIZER": "jurin.authentication.jwt_claim_serializer.CustomTokenObtainPairSerializer",
     "AUTH_HEADER_TYPES": ("Bearer",),
     "AUTH_HEADER_NAME": "HTTP_AUTHORIZATION",
     "USER_ID_FIELD": "id",

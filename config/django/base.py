@@ -16,7 +16,11 @@ DEBUG = True
 ALLOWED_HOSTS = ["*"]
 
 # Application definition
-LOCAL_APPS = []
+LOCAL_APPS = [
+    "jurin.common.apps.CommonConfig",
+    "jurin.users.apps.UsersConfig",
+    "jurin.authentication.apps.AuthenticationConfig",
+]
 
 THIRD_PARTY_APPS = [
     "corsheaders",
@@ -99,7 +103,7 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 
-# AUTH_USER_MODEL = "users.User"
+AUTH_USER_MODEL = "users.User"
 
 # Internationalization
 LANGUAGE_CODE = "en-us"
@@ -123,7 +127,7 @@ REST_FRAMEWORK = {
     "DEFAULT_RENDERER_CLASSES": ("djangorestframework_camel_case.render.CamelCaseJSONRenderer",),
     "DEFAULT_PARSER_CLASSES": ("djangorestframework_camel_case.parser.CamelCaseJSONParser",),
     "DEFAULT_AUTHENTICATION_CLASSES": ("rest_framework_simplejwt.authentication.JWTAuthentication",),
-    "EXCEPTION_HANDLER": "dump_in.common.exception.exception_handler.default_exception_handler",
+    "EXCEPTION_HANDLER": "jurin.common.exception.exception_handler.default_exception_handler",
     "DEFAULT_PERMISSION_CLASSES": ("rest_framework.permissions.AllowAny",),
 }
 

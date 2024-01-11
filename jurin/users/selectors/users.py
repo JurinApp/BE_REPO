@@ -1,20 +1,14 @@
-from typing import Optional
-
 from jurin.users.models import User
 
 
 class UserSelector:
-    def get_user_by_username_for_auth(self, username: str) -> Optional[User]:
-        try:
-            return User.objects.filter(username=username).get()
-        except User.DoesNotExist:
-            return None
-
-    def get_user_by_id(self, user_id: int) -> Optional[User]:
-        try:
-            return User.objects.filter(id=user_id).get()
-        except User.DoesNotExist:
-            return None
-
     def check_is_exists_user_by_username(self, username: str) -> bool:
+        """
+        이 함수는 유저의 유저네임이 존재하는지 조회합니다.
+
+        Args:
+            username (str): 유저네임입니다.
+        Returns:
+            bool: 유저네임이 존재하면 True, 아니면 False를 반환합니다.
+        """
         return User.objects.filter(username=username).exists()

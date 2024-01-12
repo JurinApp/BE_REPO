@@ -7,6 +7,7 @@ from rest_framework.views import APIView
 from rest_framework_simplejwt.exceptions import InvalidToken, TokenError
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
+from jurin.authentication.services import CustomJWTAuthentication
 from jurin.common.base.serializers import BaseResponseSerializer, BaseSerializer
 from jurin.common.response import create_response
 from jurin.users.services import UserService
@@ -41,6 +42,20 @@ class SignUpAPI(APIView):
         """
         아이디, 닉네임, 비밀번호, 유저 권한, 인증코드를 입력받아 회원가입을 진행합니다.
         url: /api/v1/auth/signup
+
+        Args:
+            InputSerializer:
+                username (str): 아이디
+                nickname (str): 닉네임
+                password (str): 비밀번호
+                user_role (int): 유저 권한
+                verification_code (str): 인증코드
+        Returns:
+            OutputSerializer:
+                id (int): 유저 ID
+                username (str): 아이디
+                nickname (str): 닉네임
+                user_role (str): 유저 권한
         """
         input_serializer = self.InputSerializer(data=request.data)
         input_serializer.is_valid(raise_exception=True)
@@ -74,6 +89,15 @@ class SignInAPI(TokenObtainPairView):
         """
         아이디 및 비밀번호를 입력받아 access token과 refresh token을 발급합니다.
         url: /api/v1/auth/signin
+
+        Args:
+            InputSerializer:
+                username (str): 아이디
+                password (str): 비밀번호
+        Returns:
+            OutputSerializer:
+                access_token (str): access token (만료 시간: 1시간)
+                refresh_token (str): refresh token (만료 시간: 2주)
         """
         serializer = self.get_serializer(data=request.data)
 
@@ -93,6 +117,9 @@ class SignInAPI(TokenObtainPairView):
 
 
 class JWTRefreshAPI(TokenRefreshView):
+    permission_classes = (AllowAny,)
+    authentication_classes = (CustomJWTAuthentication,)
+
     class OutputSerializer(BaseSerializer):
         access_token = serializers.CharField()
 
@@ -107,6 +134,13 @@ class JWTRefreshAPI(TokenRefreshView):
         """
         refresh token을 입력받아 access token을 발급합니다.
         url: /api/v1/auth/jwt/refresh
+
+        Args:
+            InputSerializer:
+                refresh (str): refresh token
+        Returns:
+            OutputSerializer:
+                access_token (str): access token (만료 시간: 1시간)
         """
         serializer = self.get_serializer(data=request.data)
 
@@ -140,6 +174,15 @@ class ValidateAPI(APIView):
         """
         아이디 및 인증코드를 검증합니다.
         url: /api/v1/auth/validate
+
+        Args:
+            InputSerializer:
+                validate_value (str): 검증할 값
+                validate_type (str): 검증할 값의 타입 (username, verification_code)
+        Returns:
+            OutputSerializer:
+                validate_type (str): 검증할 값의 타입 (username, verification_code)
+                is_valid (bool): 검증 결과
         """
         input_serializer = self.InputSerializer(data=request.data)
         input_serializer.is_valid(raise_exception=True)

@@ -55,3 +55,24 @@ services:
       - "80:80"
       - "443:443"
     restart: always
+
+  celery:
+    container_name: celery
+    build: ./backend/
+    command: poetry run celery -A jurin.tasks worker -l info --without-gossip --without-mingle --without-heartbeat
+    environment:
+      - DJANGO_SETTINGS_MODULE=config.django.dev
+    volumes:
+            - /etc/localtime:/etc/localtime:ro
+    restart: always
+
+
+  beats:
+    container_name: beats
+    build: ./backend/
+    command: poetry run celery -A jurin.tasks beat -l info --scheduler django_celery_beat.schedulers:DatabaseScheduler
+    environment:
+      - DJANGO_SETTINGS_MODULE=config.django.dev
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+    restart: always

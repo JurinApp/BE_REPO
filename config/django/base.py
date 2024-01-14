@@ -20,11 +20,16 @@ LOCAL_APPS = [
     "jurin.common.apps.CommonConfig",
     "jurin.users.apps.UsersConfig",
     "jurin.authentication.apps.AuthenticationConfig",
+    "jurin.channels.apps.ChannelsConfig",
+    "jurin.posts.apps.PostsConfig",
+    "jurin.items.apps.ItemsConfig",
 ]
 
 THIRD_PARTY_APPS = [
     "corsheaders",
     "rest_framework",
+    "django_celery_results",
+    "django_celery_beat",
 ]
 
 INSTALLED_APPS = [
@@ -116,6 +121,8 @@ USE_L10N = True
 
 USE_TZ = True
 
+APPEND_SLASH = False
+
 # Static files (CSS, JavaScript, Images)
 STATIC_ROOT = os.path.join(BASE_DIR, "static")
 STATIC_URL = "/static/"
@@ -126,7 +133,7 @@ MEDIA_URL = "/media/"
 REST_FRAMEWORK = {
     "DEFAULT_RENDERER_CLASSES": ("djangorestframework_camel_case.render.CamelCaseJSONRenderer",),
     "DEFAULT_PARSER_CLASSES": ("djangorestframework_camel_case.parser.CamelCaseJSONParser",),
-    "DEFAULT_AUTHENTICATION_CLASSES": ("rest_framework_simplejwt.authentication.JWTAuthentication",),
+    "DEFAULT_AUTHENTICATION_CLASSES": ("jurin.authentication.services.CustomJWTAuthentication",),
     "EXCEPTION_HANDLER": "jurin.common.exception.exception_handler.default_exception_handler",
     "DEFAULT_PERMISSION_CLASSES": ("rest_framework.permissions.AllowAny",),
 }
@@ -177,6 +184,16 @@ LOGGING = {
         #     "level": "DEBUG",
         # },
     },
+}
+
+CACHES = {
+    "default": {
+        "BACKEND": "django_redis.cache.RedisCache",
+        "LOCATION": env.str("REDIS_URL", default="redis://localhost:6379"),
+        "OPTIONS": {
+            "CLIENT_CLASS": "django_redis.client.DefaultClient",
+        },
+    }
 }
 
 

@@ -25,7 +25,6 @@ def create_response(
     Returns:
         Response: 생성된 API 응답을 담는 Django Rest Framework의 Response 객체입니다.
     """
-
     json_data: Dict[str, Any] = {}
     json_data["success"] = True if status.is_success(status_code) else False
     json_data["code"] = code

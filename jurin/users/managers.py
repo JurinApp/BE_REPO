@@ -37,5 +37,5 @@ class UserManager(BaseUserManager):
         user.set_password(password)
 
         user.save(using=self._db)
-        user.groups.add(UserRole.SUPER_ADMIN.value)
+        user.groups.add(UserRole.SUPER_USER.value)
         return user

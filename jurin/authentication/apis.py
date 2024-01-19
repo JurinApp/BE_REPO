@@ -141,10 +141,10 @@ class ValidateAPI(APIView):
         아이디 및 인증코드를 검증합니다.
         url: /api/v1/auth/validate
         """
-        filter_serializer = self.FilterSerializer(data=request.data)
-        filter_serializer.is_valid(raise_exception=True)
+        input_serializer = self.InputSerializer(data=request.data)
+        input_serializer.is_valid(raise_exception=True)
         user_service = UserService()
-        is_valid, validate_type = user_service.validate_constraint(**filter_serializer.validated_data)
+        is_valid, validate_type = user_service.validate_constraint(**input_serializer.validated_data)
         validate_data = self.OutputSerializer(
             {
                 "is_valid": is_valid,

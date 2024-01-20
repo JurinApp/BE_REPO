@@ -12,8 +12,8 @@ class BaseModel(models.Model):
         updated_at (DateTimeField): 객체가 마지막으로 업데이트된 날짜와 시간을 나타내는 필드입니다.
     """
 
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="생성 일시")
+    updated_at = models.DateTimeField(auto_now=True, verbose_name="수정 일시")
 
     class Meta:
         abstract = True
@@ -30,8 +30,8 @@ class SimpleModel(models.Model):
         description (CharField): 객체의 설명을 나타내는 필드입니다.
     """
 
-    name = models.CharField(max_length=64)
-    description = models.CharField(max_length=128, null=True)
+    name = models.CharField(max_length=64, verbose_name="이름")
+    description = models.CharField(max_length=128, null=True, verbose_name="설명")
 
     class Meta:
         abstract = True

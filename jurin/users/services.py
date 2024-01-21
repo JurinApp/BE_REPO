@@ -1,6 +1,7 @@
 from typing import Optional, Tuple
 
 from django.db import transaction
+from django.utils import timezone
 
 from jurin.common.exception.exceptions import ValidationException
 from jurin.users.enums import UserRole
@@ -64,3 +65,14 @@ class UserService:
             user.is_deleted = False
             user.deleted_at = None
             user.save()
+
+    @transaction.atomic
+    def soft_delete_user(self, password: str, user_id):
+        user = self.user_selector.get_user_by_id(user_id=user_id)
+
+        if user.check_password(password) is False:
+            raise ValidationException("Password is invalid")
+
+        user.deleted_at = timezone.now()
+        user.is_deleted = True
+        user.save()

@@ -8,6 +8,7 @@ urlpatterns = [
     path("admin", admin.site.urls),
     # API
     path("api/v1/auth/", include(("jurin.authentication.urls", "api-auth"))),
+    path("api/v1/users/", include(("jurin.users.urls", "api-users"))),
 ]
 
 from config.settings.debug_toolbar.setup import DebugToolbarSetup  # noqa

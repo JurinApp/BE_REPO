@@ -10,5 +10,11 @@ class UserSelector:
         except User.DoesNotExist:
             return None
 
+    def get_user_by_id(self, user_id: int) -> Optional[User]:
+        try:
+            return User.objects.filter(id=user_id).get()
+        except User.DoesNotExist:
+            return None
+
     def check_is_exists_user_by_username(self, username: str) -> bool:
         return User.objects.filter(username=username).exists()

@@ -55,7 +55,6 @@ def handle_api_exception(exc: Exception, context: dict) -> Optional[Response]:
         Optional[Response]: 예외 처리 결과로 생성된 Response 객체를 반환합니다.
                            예외 처리가 불가능한 경우 None을 반환합니다.
     """
-
     # 프로젝트 내의 모든 익셉션은 APIException 객체여야만 합니다.
     # APIException 객체가 아닌 익셉션은 처리할 수 없습니다.
     if isinstance(exc, APIException) is False:

@@ -7,6 +7,13 @@ volumes:
   nginx_log: {}
 
 services:
+  redis:
+    container_name: redis
+    image: redis:7.2.2
+    ports:
+      - "6379:6379"
+    restart: always
+
   mysql:
     container_name: mysql
     image: mysql:8.1
@@ -76,7 +83,6 @@ services:
     volumes:
             - /etc/localtime:/etc/localtime:ro
     restart: always
-
 
   beats:
     container_name: beats

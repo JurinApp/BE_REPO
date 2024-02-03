@@ -126,7 +126,9 @@ class TeacherItemListAPI(APIView):
         tags=["선생님-아이템"],
         operation_summary="선생님 채널 아이템 다중 삭제",
         request_body=DeleteInputSerializer,
-        responses={status.HTTP_204_NO_CONTENT: ""},
+        responses={
+            status.HTTP_204_NO_CONTENT: "",
+        },
     )
     def delete(self, request: Request, channel_id: int) -> Response:
         """
@@ -249,7 +251,9 @@ class TeacherItemDetailAPI(APIView):
     @swagger_auto_schema(
         tags=["선생님-아이템"],
         operation_summary="선생님 채널 아이템 삭제",
-        responses={status.HTTP_204_NO_CONTENT: ""},
+        responses={
+            status.HTTP_204_NO_CONTENT: "",
+        },
     )
     def delete(self, request: Request, channel_id: int, item_id: int) -> Response:
         """

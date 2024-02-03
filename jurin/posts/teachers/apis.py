@@ -127,7 +127,9 @@ class TeacherPostListAPI(APIView):
         tags=["선생님-게시글"],
         operation_summary="선생님 채널 게시글 다중 삭제",
         request_body=DeleteInputSerializer,
-        responses={status.HTTP_204_NO_CONTENT: ""},
+        responses={
+            status.HTTP_204_NO_CONTENT: "",
+        },
     )
     def delete(self, request: Request, channel_id: int) -> Response:
         """
@@ -249,9 +251,7 @@ class TeacherPostDetailAPI(APIView):
     @swagger_auto_schema(
         tags=["선생님-게시글"],
         operation_summary="선생님 채널 게시글 삭제",
-        responses={
-            status.HTTP_204_NO_CONTENT: BaseResponseSerializer(),
-        },
+        responses={status.HTTP_204_NO_CONTENT: ""},
     )
     def delete(self, request: Request, channel_id: int, post_id: int) -> Response:
         """

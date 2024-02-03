@@ -57,7 +57,7 @@ class SwaggerSetup:
             ),
             public=True,
             permission_classes=(AllowAny,),
-            url="http://13.125.29.193/api/v1/",
+            url="http://jurin.shop",
         )
 
         return urlpatterns + [

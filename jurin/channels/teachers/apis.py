@@ -121,6 +121,7 @@ class TeacherChanneManagementAPI(APIView):
                 "id": serializers.IntegerField(source="user.id"),
                 "nickname": serializers.CharField(source="user.nickname"),
                 "username": serializers.CharField(source="user.username"),
+                "point": serializers.IntegerField(),
             },
         )
 
@@ -192,7 +193,7 @@ class TeacherChanneManagementAPI(APIView):
         url: /teachers/api/v1/channels/<int:channel_id>/management
 
         Args:
-            InputSerializer:
+            PostInputSerializer:
                 user_ids (list): 유저 아이디 리스트
                 point (int): 지급할 포인트
         Returns:

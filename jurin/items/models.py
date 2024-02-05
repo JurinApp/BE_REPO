@@ -28,7 +28,8 @@ class Item(BaseModel):
 class UserItem(BaseModel):
     id = models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name="유저 아이템 고유 아이디")
     amount = models.PositiveIntegerField(verbose_name="수량")
-    used_amount = models.PositiveIntegerField(verbose_name="사용 수량")
+    used_amount = models.PositiveIntegerField(verbose_name="사용 수량", default=0)
+    is_used = models.BooleanField(default=False, verbose_name="사용 여부")
     item = models.ForeignKey(Item, on_delete=models.CASCADE, verbose_name="아이템 고유 아이디", related_name="user_item_pivot")
     user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name="유저 고유 아이디", related_name="user_item_pivot")
     is_deleted = models.BooleanField(default=False, verbose_name="삭제 여부")

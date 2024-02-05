@@ -8,7 +8,6 @@ urlpatterns = [
     path("admin", admin.site.urls),
     # API
     path("api/v1/auth", include(("jurin.authentication.urls", "api-auth"))),
-    path("teachers/api/v1/files", include(("jurin.files.teachers.urls", "api-files"))),
     path("students/api/v1/users", include(("jurin.users.students.urls", "students-api-users"))),
     path("teachers/api/v1/users", include(("jurin.users.teachers.urls", "teachers-api-users"))),
     path("students/api/v1/channels", include(("jurin.channels.students.urls", "students-api-channels"))),
@@ -17,6 +16,7 @@ urlpatterns = [
     path("teachers/api/v1/channels/<int:channel_id>/posts", include(("jurin.posts.teachers.urls", "teachers-api-posts"))),
     path("students/api/v1/channels/<int:channel_id>/items", include(("jurin.items.students.urls", "students-api-items"))),
     path("teachers/api/v1/channels/<int:channel_id>/items", include(("jurin.items.teachers.urls", "teachers-api-items"))),
+    path("teachers/api/v1/channels/<int:channel_id>/files", include(("jurin.files.teachers.urls", "teachers-api-files"))),
 ]
 
 from config.settings.debug_toolbar.setup import DebugToolbarSetup  # noqa

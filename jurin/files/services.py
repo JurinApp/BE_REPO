@@ -9,10 +9,9 @@ from jurin.files.utils import bytes_to_mib
 
 
 class FileUploadService:
-    def __init__(self, file_obj, resource_type: str, resource_type_id: int):
-        self.resource_type_id = resource_type_id
+    def __init__(self, file_obj, channel_id: int):
+        self.channel_id = channel_id
         self.file_obj = file_obj
-        self.resource_type = resource_type
 
     def _validate_file_size(self):
         """
@@ -41,13 +40,11 @@ class FileUploadService:
         Returns:
             resource_path(str): 파일을 업로드할 경로
         """
-        id_path = str(self.resource_type_id)
+        id_path = str(self.channel_id)
         ext = str(self.file_obj.name).split(".")[-1]
 
-        if self.resource_type == "item":
-            resource_path = "channels/" + id_path + "/items/" + datetime.now().strftime("%Y-%m-%d-%H-%M-%S.%f") + "." + ext
-        else:
-            raise ValidationException(f"Invalid resource type: {self.resource_type}")
+        resource_path = "channels/" + id_path + "/items/" + datetime.now().strftime("%Y-%m-%d-%H-%M-%S.%f") + "." + ext
+
         return resource_path
 
     def upload_file(self) -> str:

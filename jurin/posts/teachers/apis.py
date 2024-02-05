@@ -234,7 +234,6 @@ class TeacherPostDetailAPI(APIView):
         """
         input_serializer = self.InputSerializer(data=request.data)
         input_serializer.is_valid(raise_exception=True)
-
         post_service = PostService()
         post = post_service.update_post(
             post_id=post_id,

@@ -23,7 +23,7 @@ class FileUploadAPI(APIView):
         resource_type_id = serializers.IntegerField(required=True, help_text="파일을 업로드할 리소스 아이디 (ex: channel_id)")
 
     class OutputSerializer(BaseSerializer):
-        file_url = serializers.CharField()
+        file_url = serializers.URLField()
 
     @swagger_auto_schema(
         tags=["선생님-파일"],

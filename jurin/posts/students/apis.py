@@ -44,6 +44,11 @@ class StudentPostListAPI(APIView):
         학생 권한의 유저가 채널의 게시글 목록을 조회합니다.
         url: /students/api/v1/channels/<int:channel_id>/posts
 
+        Args:
+            channel_id (int): 채널 아이디
+            FilterSerializer:
+                limit (int): 조회할 개수
+                offset (int): 조회 시작 위치
         Returns:
             OutputSerializer:
                 id (int): 게시글 고유 아이디
@@ -99,6 +104,9 @@ class StudentPostDetailAPI(APIView):
         학생 권한의 유저가 채널의 게시글 상세를 조회합니다.
         url: /students/api/v1/channels/<int:channel_id>/posts/<int:post_id>
 
+        Args:
+            channel_id (int): 채널 아이디
+            post_id (int): 게시글 아이디
         Returns:
             OutputSerializer:
                 id (int): 게시글 고유 아이디

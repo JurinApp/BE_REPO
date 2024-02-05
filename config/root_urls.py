@@ -8,6 +8,7 @@ urlpatterns = [
     path("admin", admin.site.urls),
     # API
     path("api/v1/auth", include(("jurin.authentication.urls", "api-auth"))),
+    path("teachers/api/v1/files", include(("jurin.files.teachers.urls", "api-files"))),
     path("students/api/v1/users", include(("jurin.users.students.urls", "students-api-users"))),
     path("teachers/api/v1/users", include(("jurin.users.teachers.urls", "teachers-api-users"))),
     path("students/api/v1/channels", include(("jurin.channels.students.urls", "students-api-channels"))),

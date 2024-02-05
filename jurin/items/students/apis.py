@@ -51,6 +51,11 @@ class StudentItemListAPI(APIView):
         학생 권한의 유저가 채널의 아이템 목록을 조회합니다.
         url: /students/api/v1/channels/<int:channel_id>/items
 
+        Args:
+            channel_id (int): 채널 고유 아이디
+            FilterSerializer:
+                limit (int): 조회 개수
+                offset (int): 조회 시작 위치
         Returns:
             OutputSerializer:
                 id (int): 아이템 고유 아이디
@@ -112,9 +117,11 @@ class StudentDetailAPI(APIView):
         url: /students/api/v1/channels/<int:channel_id>/items/<int:item_id>
 
         Args:
+            channel_id (int): 채널 고유 아이디
             item_id (int): 아이템 고유 아이디
-            price (int): 가격
-            amount (int): 수량
+            InputSerializer:
+                price (int): 가격
+                amount (int): 수량
         Returns:
             OutputSerializer:
                 id (int): 아이템 고유 아이디
@@ -174,6 +181,7 @@ class StudentMyItemListAPI(APIView):
         url: /teachers/api/v1/channels/<int:channel_id>/items/mine
 
         Args:
+            channel_id (int): 채널 고유 아이디
             FilterSerializer:
                 limit (int): 조회 개수
                 offset (int): 조회 시작 위치
@@ -241,6 +249,8 @@ class StudentMyItemDetailAPI(APIView):
         url: /students/api/v1/channels/<int:channel_id>/items/mine/<int:item_id>
 
         Args:
+            channel_id (int): 채널 고유 아이디
+            item_id (int): 아이템 고유 아이디
             InputSerializer:
                 amount (int): 수량
         Returns:
@@ -290,6 +300,9 @@ class StudentMyItemDetailLogAPI(APIView):
         학생 권한의 유저가 자신의 아이템 상세 로그를 조회합니다.
         url: /teachers/api/v1/channels/<int:channel_id>/items/<int:item_id>/mine/
 
+        Args:
+            channel_id (int): 채널 고유 아이디
+            item_id (int): 아이템 고유 아이디
         Returns:
             OutputSerializer:
                 title (str): 아이템 제목

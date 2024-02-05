@@ -44,6 +44,11 @@ class TeacherItemListAPI(APIView):
         선생님 권한의 유저가 채널의 아이템 목록을 조회합니다.
         url: /teachers/api/v1/channels/<int:channel_id>/items
 
+        Args:
+            channel_id (int): 채널 아이디
+            FilterSerializer:
+                limit (int): 조회할 개수
+                offset (int): 조회 시작 위치
         Returns:
             OutputSerializer:
                 id (int): 아이템 고유 아이디
@@ -92,6 +97,7 @@ class TeacherItemListAPI(APIView):
         url: /teachers/api/v1/channels/<int:channel_id>/items
 
         Args:
+            channel_id (int): 채널 아이디
             PostInputSerializer
                 title (str): 제목
                 image_url (str): 이미지 URL
@@ -134,6 +140,11 @@ class TeacherItemListAPI(APIView):
         """
         선생님 권한의 유저가 채널의 아이템을 다중 삭제합니다.
         url: /teachers/api/v1/channels/<int:channel_id>/items
+
+        Args:
+            channel_id (int): 채널 아이디
+            DeleteInputSerializer:
+                item_ids (list): 아이템 아이디 리스트
         """
         input_serializer = self.DeleteInputSerializer(data=request.data)
         input_serializer.is_valid(raise_exception=True)
@@ -170,6 +181,9 @@ class TeacherItemDetailAPI(APIView):
         선생님 권한의 유저가 채널의 아이템을 상세 조회합니다.
         url: /teachers/api/v1/channels/<int:channel_id>/items/<int:item_id>
 
+        Args:
+            channel_id (int): 채널 아이디
+            item_id (int): 아이템 아이디
         Returns:
             OutputSerializer:
                 id (int): 아이템 고유 아이디
@@ -217,6 +231,8 @@ class TeacherItemDetailAPI(APIView):
         url: /teachers/api/v1/channels/<int:channel_id>/items/<int:item_id>
 
         Args:
+            channel_id (int): 채널 아이디
+            item_id (int): 아이템 아이디
             PutInputSerializer
                 title (str): 제목
                 image_url (str): 이미지 URL
@@ -259,6 +275,10 @@ class TeacherItemDetailAPI(APIView):
         """
         선생님 권한의 유저가 채널의 아이템을 삭제합니다.
         url: /teachers/api/v1/channels/<int:channel_id>/items/<int:item_id>
+
+        Args:
+            channel_id (int): 채널 아이디
+            item_id (int): 아이템 아이디
         """
         item_service = ItemService()
         item_service.delete_item(

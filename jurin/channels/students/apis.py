@@ -107,6 +107,9 @@ class StudentChannelDetailAPI(APIView):
         """
         학생 권한의 유저가 채널을 탈퇴합니다.
         url: /students/api/v1/channels/<int:channel_id>
+
+        Args:
+            channel_id (int): 채널 ID
         """
         channel_service = ChannelService()
         channel_service.leave_channel(user=request.user, channel_id=channel_id)

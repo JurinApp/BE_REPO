@@ -100,6 +100,9 @@ class TeacherChannelDetailAPI(APIView):
         """
         선생님 권한의 유저가 자신의 채널을 탈퇴합니다. (대기 삭제)
         url: /teachers/api/v1/channels/<int:channel_id>
+
+        Args:
+            channel_id (int): 채널 ID
         """
         channel_service = ChannelService()
         channel_service.pending_delete_channel(user=request.user, channel_id=channel_id)
@@ -139,6 +142,7 @@ class TeacherChanneManagementAPI(APIView):
         url: /teachers/api/v1/channels/<int:channel_id>/management
 
         Args:
+            channel_id (int): 채널 ID
             FilterSerializer:
                 student_nickname (str): 학생 닉네임
         Returns:
@@ -193,6 +197,7 @@ class TeacherChanneManagementAPI(APIView):
         url: /teachers/api/v1/channels/<int:channel_id>/management
 
         Args:
+            channel_id (int): 채널 ID
             PostInputSerializer:
                 user_ids (list): 유저 아이디 리스트
                 point (int): 지급할 포인트
@@ -239,6 +244,7 @@ class TeacherChanneManagementAPI(APIView):
         url: /teachers/api/v1/channels/<int:channel_id>/management
 
         Args:
+            channel_id (int): 채널 ID
             DeleteInputSerializer:
                 user_ids (list): 유저 아이디 리스트
         """

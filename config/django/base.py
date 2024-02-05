@@ -23,6 +23,7 @@ LOCAL_APPS = [
     "jurin.channels.apps.ChannelsConfig",
     "jurin.posts.apps.PostsConfig",
     "jurin.items.apps.ItemsConfig",
+    "jurin.files.apps.FilesConfig",
 ]
 
 THIRD_PARTY_APPS = [
@@ -199,6 +200,8 @@ CACHES = {
 
 from config.settings.cors import *  # noqa
 from config.settings.jwt import *  # noqa
+from config.settings.files_and_storages import *  # noqa
+from config.settings.celery import *  # noqa
 
 from config.settings.debug_toolbar.settings import *  # noqa
 from config.settings.debug_toolbar.setup import DebugToolbarSetup  # noqa

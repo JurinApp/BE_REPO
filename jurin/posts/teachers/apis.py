@@ -45,6 +45,11 @@ class TeacherPostListAPI(APIView):
         선생님 권한의 유저가 채널의 게시글 목록을 조회합니다.
         url: /teachers/api/v1/channels/<int:channel_id>/posts
 
+        Args:
+            channel_id (int): 채널 아이디
+            FilterSerializer:
+                limit (int): 조회할 개수
+                offset (int): 조회 시작 위치
         Returns:
             OutputSerializer:
                 id (int): 게시글 고유 아이디
@@ -93,6 +98,7 @@ class TeacherPostListAPI(APIView):
         url: /teachers/api/v1/channels/<int:channel_id>/posts
 
         Args:
+            channel_id (int): 채널 아이디
             PostInputSerializer:
                 channel_id (int): 채널 아이디
                 main_title (str): 메인 제목
@@ -137,6 +143,7 @@ class TeacherPostListAPI(APIView):
         url: /teachers/api/v1/channels/<int:channel_id>/posts
 
         Args:
+            channel_id (int): 채널 아이디
             DeleteInputSerializer:
                 post_ids (List[int]): 게시글 아이디 리스트
         """
@@ -174,6 +181,9 @@ class TeacherPostDetailAPI(APIView):
         선생님 권한의 유저가 채널의 게시글 상세를 조회합니다.
         url: /teachers/api/v1/channels/<int:channel_id>/posts/<int:post_id>
 
+        Args:
+            channel_id (int): 채널 아이디
+            post_id (int): 게시글 아이디
         Returns:
             OutputSerializer:
                 id (int): 게시글 고유 아이디
@@ -219,6 +229,8 @@ class TeacherPostDetailAPI(APIView):
         url: /teachers/api/v1/channels/<int:channel_id>/posts/<int:post_id>
 
         Args:
+            channel_id (int): 채널 아이디
+            post_id (int): 게시글 아이디
             InputSerializer:
                 main_title (str): 메인 제목
                 sub_title (str): 서브 제목
@@ -256,6 +268,10 @@ class TeacherPostDetailAPI(APIView):
         """
         선생님 권한의 유저가 채널의 게시글을 삭제합니다. (소프트 삭제)
         url: /teachers/api/v1/channels/<int:channel_id>/posts/<int:post_id>
+
+        Args:
+            channel_id (int): 채널 아이디
+            post_id (int): 게시글 아이디
         """
         post_service = PostService()
         post_service.delete_post(

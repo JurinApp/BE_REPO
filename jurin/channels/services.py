@@ -168,16 +168,16 @@ class ChannelService:
             user_channel.save()
 
     @transaction.atomic
-    def leave_users(self, user: User, channel_id: int, user_channel_ids: list[int]):
+    def leave_users(self, user: User, channel_id: int, user_ids: list[int]):
         """
-        이 함수는 유저와 채널 아이디를 받아 검증 후 유저 채널 아이디 리스트를 받아서
+        이 함수는 유저와 채널 아이디와 유저 아이디 리스트를 받아 검증 후
         채널에서 탈퇴시킨 후 포인트를 0으로 초기화합니다.
         (위 함수와 차이점은 채널 소유의 유저가 유저들을 탈퇴시키는 경우입니다.)
 
         Args:
             user (User): 유저 객체입니다.
             channel_id (int): 채널 아이디입니다.
-            user_channel_ids (list[int]): 유저 채널 아이디 리스트입니다.
+            user_ids (list[int]): 유저 아이디 리스트입니다.
         """
         # 채널이 존재하는지 검증
         channel = self.channel_selector.get_channel_by_user_and_id(user=user, channel_id=channel_id)
@@ -185,10 +185,15 @@ class ChannelService:
         if channel is None:
             raise NotFoundException("Channel does not exist.")
 
-        user_channels = self.user_channel_selector.get_user_channel_queryset_exec_mine_by_ids_and_user(
-            user_channel_ids=user_channel_ids,
+        # 유저 채널이 존재하는지 검증
+        user_channels = self.user_channel_selector.get_user_channel_queryset_exec_mine_by_users_ids_and_user_and_channel_id(
+            user_ids=user_ids,
+            channel_id=channel_id,
             user=user,
         )
+
+        if user_channels.count() != len(user_ids):
+            raise NotFoundException("User channel does not exist.")
 
         # 채널 소유 유저인 경우 채널에서 탈퇴시키지 못하도록 검증
         if user_channels.filter(user=user).exists():
@@ -198,13 +203,13 @@ class ChannelService:
         user_channels.update(is_deleted=True, point=0)
 
     @transaction.atomic
-    def give_point_to_users(self, channel_id: int, user_channel_ids: list[int], point: int, user: User) -> QuerySet[UserChannel]:
+    def give_point_to_users(self, channel_id: int, user_ids: list[int], point: int, user: User) -> QuerySet[UserChannel]:
         """
-        이 함수는 채널 아이디와 유저 채널 아이디 리스트와 포인트를 받아서 유저 채널에 포인트를 지급합니다.
+        이 함수는 채널 아이디와 유저 아아디 리스트와 유저를 검증 후 유저 채널에 포인트를 지급합니다.
 
         Args:
             channel_id (int): 채널 아이디입니다.
-            user_channel_ids (list[int]): 유저 채널 아이디 리스트입니다.
+            user_ids (list[int]): 유저 아이디 리스트입니다.
             point (int): 포인트입니다.
         Returns:
             QuerySet[UserChannel]: 유저 채널 쿼리셋입니다.
@@ -216,16 +221,18 @@ class ChannelService:
             raise NotFoundException("Channel does not exist.")
 
         # 유저 채널이 존재하는지 검증
-        user_channels = self.user_channel_selector.get_user_channel_queryset_exec_mine_with_user_by_ids_and_user(
-            user_channel_ids=user_channel_ids,
+        user_channels = self.user_channel_selector.get_user_channel_queryset_exec_mine_by_users_ids_and_user_and_channel_id(
+            user_ids=user_ids,
             user=user,
+            channel_id=channel_id,
         )
 
         # 채널 소유 유저인 경우 포인트 지급 금지 검증
         if user_channels.filter(user=user).exists():
             raise ValidationException("You can't give point to owner from channel.")
 
-        if user_channels.count() != len(user_channel_ids):
+        # 유저 채널이 존재하는지 검증
+        if user_channels.count() != len(user_ids):
             raise NotFoundException("User channel does not exist.")
 
         # F 객체를 사용하여 포인트를 지급합니다.

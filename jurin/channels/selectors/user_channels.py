@@ -88,30 +88,11 @@ class UserChannelSelector:
             .exclude(user=user)
         )
 
-    def get_user_channel_queryset_exec_mine_by_ids_and_user(self, user_channel_ids: list[int], user: User) -> QuerySet[UserChannel]:
-        """
-        이 함수는 유저 채널 아이디 리스트와 유저를 받아서 자기 자신을 제외한 유저 채널 쿼리셋을 조회합니다.
-        채널이 삭제 대기 중, 삭제(채널 소유 유저가 회원탈퇴)),
-        유저 채널이 삭제(유저가 회원탈퇴)인 경우 조회되지 않습니다.
-
-        Args:
-            channel_id (int): 채널 ID입니다.
-            user_ids (list[int]): 유저 아이디 리스트입니다.
-        Returns:
-            QuerySet[UserChannel]: 유저 채널 쿼리셋입니다.
-        """
-        channel_qs = Q(channel__is_deleted=False) & Q(channel__is_pending_deleted=False) & Q(channel__pending_deleted_at__isnull=True)
-
-        return UserChannel.objects.filter(
-            id__in=user_channel_ids,
-            is_deleted=False,
-        ).filter(channel_qs)
-
-    def get_user_channel_queryset_exec_mine_with_user_by_ids_and_user(
-        self, user_channel_ids: list[int], user: User
+    def get_user_channel_queryset_exec_mine_by_users_ids_and_user_and_channel_id(
+        self, user_ids: list[int], user: User, channel_id: int
     ) -> QuerySet[UserChannel]:
         """
-        이 함수는 유저 채널 아이디 리스트와 유저를 받아 자기 자신을 제외하고 유저를 포함한 유저 채널 쿼리셋을 조회합니다.
+        이 함수는 유저 아이디 리스트와 유저와 채널 아이디를 받아서 자기 자신을 제외한 유저 채널 쿼리셋을 조회합니다.
         채널이 삭제 대기 중, 삭제(채널 소유 유저가 회원탈퇴)),
         유저 채널이 삭제(유저가 회원탈퇴)인 경우 조회되지 않습니다.
 
@@ -126,10 +107,12 @@ class UserChannelSelector:
         return (
             UserChannel.objects.select_related("user")
             .filter(
-                id__in=user_channel_ids,
+                user_id__in=user_ids,
+                channel_id=channel_id,
                 is_deleted=False,
             )
             .filter(channel_qs)
+            .exclude(user=user)
         )
 
     def check_is_exists_user_channel_by_user(self, user: User) -> bool:

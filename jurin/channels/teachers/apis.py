@@ -110,22 +110,17 @@ class TeacherChanneManagementAPI(APIView):
     authentication_classes = (CustomJWTAuthentication,)
     permission_classes = (TeacherPermission,)
 
-    class InputSerializer(BaseSerializer):
-        user_channel_ids = serializers.ListField(child=serializers.IntegerField())
-        point = serializers.IntegerField()
-
     class FilterSerializer(BaseSerializer):
         nickname = serializers.CharField(required=False, max_length=8)
 
     class OutputSerializer(BaseSerializer):
         count = serializers.IntegerField()
-        user_channels = inline_serializer(
+        users = inline_serializer(
             many=True,
             fields={
-                "id": serializers.IntegerField(),
+                "id": serializers.IntegerField(source="user.id"),
                 "nickname": serializers.CharField(source="user.nickname"),
                 "username": serializers.CharField(source="user.username"),
-                "point": serializers.IntegerField(),
             },
         )
 
@@ -148,7 +143,7 @@ class TeacherChanneManagementAPI(APIView):
         Returns:
             OutputSerializer:
                 count (int): 조회된 유저 수
-                user_channel (list):
+                users (list):
                     id (int): 유저 채널 ID
                     nickname (str): 유저 닉네임
                     username (str): 유저 아이디
@@ -173,16 +168,20 @@ class TeacherChanneManagementAPI(APIView):
         )
         user_channel_data = self.OutputSerializer(
             {
-                "user_channels": user_channels,
+                "users": user_channels,
                 "count": user_channels.count(),
             }
         ).data
         return create_response(user_channel_data, status_code=status.HTTP_200_OK)
 
+    class PostInputSerializer(BaseSerializer):
+        user_ids = serializers.ListField(child=serializers.IntegerField())
+        point = serializers.IntegerField()
+
     @swagger_auto_schema(
         tags=["선생님-채널"],
         operation_summary="선생님 채널 관리 포인트 지급",
-        request_body=InputSerializer,
+        request_body=PostInputSerializer,
         responses={
             status.HTTP_200_OK: BaseResponseSerializer(data_serializer=OutputSerializer),
         },
@@ -194,36 +193,36 @@ class TeacherChanneManagementAPI(APIView):
 
         Args:
             InputSerializer:
-                user_channel_ids (list): 유저 채널 ID 리스트
+                user_ids (list): 유저 아이디 리스트
                 point (int): 지급할 포인트
         Returns:
             OutputSerializer:
                 count (int): 조회된 유저 수
-                user_channel (list):
+                users (list):
                     id (int): 유저 채널 ID
                     nickname (str): 유저 닉네임
                     username (str): 유저 아이디
                     point (int): 유저 포인트
         """
-        input_serializer = self.InputSerializer(data=request.data)
+        input_serializer = self.PostInputSerializer(data=request.data)
         input_serializer.is_valid(raise_exception=True)
         channel_service = ChannelService()
         user_channels = channel_service.give_point_to_users(
             channel_id=channel_id,
-            user_channel_ids=input_serializer.validated_data["user_channel_ids"],
+            user_ids=input_serializer.validated_data["user_ids"],
             point=input_serializer.validated_data["point"],
             user=request.user,
         )
         user_channel_data = self.OutputSerializer(
             {
-                "user_channels": user_channels,
+                "users": user_channels,
                 "count": user_channels.count(),
             }
         ).data
         return create_response(user_channel_data, status_code=status.HTTP_200_OK)
 
     class DeleteInputSerializer(BaseSerializer):
-        user_channel_ids = serializers.ListField(child=serializers.IntegerField())
+        user_ids = serializers.ListField(child=serializers.IntegerField())
 
     @swagger_auto_schema(
         tags=["선생님-채널"],
@@ -240,14 +239,14 @@ class TeacherChanneManagementAPI(APIView):
 
         Args:
             DeleteInputSerializer:
-                user_channel_ids (list): 유저 채널 ID 리스트
+                user_ids (list): 유저 아이디 리스트
         """
         input_serializer = self.DeleteInputSerializer(data=request.data)
         input_serializer.is_valid(raise_exception=True)
         channel_service = ChannelService()
         channel_service.leave_users(
             channel_id=channel_id,
-            user_channel_ids=input_serializer.validated_data["user_channel_ids"],
+            user_ids=input_serializer.validated_data["user_ids"],
             user=request.user,
         )
         return create_response(status_code=status.HTTP_204_NO_CONTENT)

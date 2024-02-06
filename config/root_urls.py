@@ -17,6 +17,8 @@ urlpatterns = [
     path("students/api/v1/channels/<int:channel_id>/items", include(("jurin.items.students.urls", "students-api-items"))),
     path("teachers/api/v1/channels/<int:channel_id>/items", include(("jurin.items.teachers.urls", "teachers-api-items"))),
     path("teachers/api/v1/channels/<int:channel_id>/files", include(("jurin.files.teachers.urls", "teachers-api-files"))),
+    path("teachers/api/v1/channels/<int:channel_id>/stocks", include(("jurin.stocks.teachers.urls", "teachers-api-stocks"))),
+    path("students/api/v1/channels/<int:channel_id>/stocks", include(("jurin.stocks.students.urls", "students-api-stocks"))),
 ]
 
 from config.settings.debug_toolbar.setup import DebugToolbarSetup  # noqa

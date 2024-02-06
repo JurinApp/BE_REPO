@@ -112,7 +112,7 @@ class TeacherPostListAPI(APIView):
                 sub_title (str): 서브 제목
                 date (date): 날짜
         """
-        input_serializer = self.InputSerializer(data=request.data)
+        input_serializer = self.PostInputSerializer(data=request.data)
         input_serializer.is_valid(raise_exception=True)
         post_service = PostService()
         post = post_service.create_post(

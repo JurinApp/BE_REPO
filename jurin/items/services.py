@@ -41,6 +41,10 @@ class ItemService:
         if channel is None:
             raise NotFoundException("Channel does not exist.")
 
+        # 시장 오픈 시간 및 마감 시간 검증
+        if channel.market_opening_at <= timezone.now().time() <= channel.market_closing_at:
+            raise ValidationException("You cannot register items during market hours.")
+
         # 아이템 생성
         item = Item.objects.create(
             title=title,
@@ -78,6 +82,10 @@ class ItemService:
         if channel is None:
             raise NotFoundException("Channel does not exist.")
 
+        # 시장 오픈 시간 및 마감 시간 검증
+        if channel.market_opening_at <= timezone.now().time() <= channel.market_closing_at:
+            raise ValidationException("You cannot register items during market hours.")
+
         # 아이템이 존재하는지 검증
         item = self.item_selector.get_item_by_id_and_channel_id(item_id=item_id, channel_id=channel_id)
 
@@ -110,6 +118,10 @@ class ItemService:
         if channel is None:
             raise NotFoundException("Channel does not exist.")
 
+        # 시장 오픈 시간 및 마감 시간 검증
+        if channel.market_opening_at <= timezone.now().time() <= channel.market_closing_at:
+            raise ValidationException("You cannot register items during market hours.")
+
         # 아이템이 존재하는지 검증
         item = self.item_selector.get_item_by_id_and_channel_id(item_id=item_id, channel_id=channel_id)
 
@@ -136,6 +148,10 @@ class ItemService:
 
         if channel is None:
             raise NotFoundException("Channel does not exist.")
+
+        # 시장 오픈 시간 및 마감 시간 검증
+        if channel.market_opening_at <= timezone.now().time() <= channel.market_closing_at:
+            raise ValidationException("You cannot register items during market hours.")
 
         # 아이템들이 존재하는지 검증
         items = self.item_selector.get_item_queryset_by_ids_and_channel_id(item_ids=item_ids, channel_id=channel_id)

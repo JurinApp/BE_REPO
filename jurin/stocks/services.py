@@ -186,6 +186,17 @@ class StockService:
 
     @transaction.atomic
     def buy_stock(self, stock_id: int, user: User, channel_id: int, amount: int) -> tuple[int, int]:
+        """
+        이 함수는 주식 종목 아이디와 유저 객체와 채널 아이디와 수량을 받아 검증 후 주식을 매수합니다.
+
+        Args:
+            stock_id (int): 주식 종목 아이디
+            user (User): 유저 객체
+            channel_id (int): 채널 아이디
+            amount (int): 수량
+        Returns:
+            tuple[int, int]: 유저 포인트, 유저 주식 종목 수량
+        """
         # 유저 채널이 존재하는지 검증
         user_channel = self.user_channel_selector.get_non_pending_deleted_user_channel_by_channel_id_and_user(
             user=user, channel_id=channel_id
@@ -193,6 +204,8 @@ class StockService:
 
         if user_channel is None:
             raise NotFoundException("User channel does not exist.")
+
+        # @TODO: 시장 오픈 시간 및 마감 시간 검증
 
         # 주식 종목이 존재하는지 검증
         stock = self.stock_selector.get_stock_by_id_and_channel_id(
@@ -243,6 +256,17 @@ class StockService:
 
     @transaction.atomic
     def sell_stock(self, stock_id: int, user: User, channel_id: int, amount: int) -> tuple[int, int]:
+        """
+        이 함수는 주식 종목 아이디와 유저 객체와 채널 아이디와 수량을 받아 검증 후 주식을 매도합니다.
+
+        Args:
+            stock_id (int): 주식 종목 아이디
+            user (User): 유저 객체
+            channel_id (int): 채널 아이디
+            amount (int): 수량
+        Returns:
+            tuple[int, int]: 유저 포인트, 유저 주식 종목 수량
+        """
         # 유저 채널이 존재하는지 검증
         user_channel = self.user_channel_selector.get_non_pending_deleted_user_channel_by_channel_id_and_user(
             user=user, channel_id=channel_id
@@ -250,6 +274,8 @@ class StockService:
 
         if user_channel is None:
             raise NotFoundException("User channel does not exist.")
+
+        # @TODO: 시장 오픈 시간 및 마감 시간 검증
 
         # 주식 종목이 존재하는지 검증
         stock = self.stock_selector.get_stock_by_id_and_channel_id(

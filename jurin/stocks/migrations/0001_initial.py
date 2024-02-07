@@ -20,8 +20,8 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='주식 고유 아이디')),
                 ('name', models.CharField(max_length=32, verbose_name='종목명')),
-                ('purchase_price', models.PositiveIntegerField(verbose_name='매입가격')),
-                ('next_day_purchase_price', models.PositiveIntegerField(verbose_name='다음날 매입가격')),
+                ('purchase_price', models.PositiveIntegerField(verbose_name='매수가')),
+                ('next_day_purchase_price', models.PositiveIntegerField(verbose_name='다음날 매수가')),
                 ('tax', models.FloatField(verbose_name='세금')),
                 ('standard', models.CharField(max_length=32, verbose_name='기준')),
                 ('content', models.TextField(verbose_name='내용')),

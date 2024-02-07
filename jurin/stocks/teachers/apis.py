@@ -122,7 +122,7 @@ class TeacherStockListAPI(APIView):
             channel_id (int): 채널 아이디
             PostInputSerializer:
                 name (str): 종목명
-                purchase_price (int): 매입가
+                purchase_price (int): 매수가
                 tax (float): 세금
                 standard (str): 기준
                 content (str): 설명
@@ -130,7 +130,7 @@ class TeacherStockListAPI(APIView):
             PostOutputSerializer:
                 id (int): 주식 종목 아이디
                 name (str): 종목명
-                purchase_price (int): 매입가
+                purchase_price (int): 매수가
                 tax (float): 세금
                 standard (str): 기준
                 content (str): 설명
@@ -182,7 +182,7 @@ class TeacherStockListAPI(APIView):
         return create_response(status_code=status.HTTP_204_NO_CONTENT)
 
 
-class TeacherStockTodayTradeListAPI(APIView):
+class TeacherStockTradeTodayListAPI(APIView):
     authentication_classes = (CustomJWTAuthentication,)
     permission_classes = (TeacherPermission,)
 
@@ -193,11 +193,15 @@ class TeacherStockTodayTradeListAPI(APIView):
         limit = serializers.IntegerField(required=False, min_value=1, max_value=50, default=15)
         offset = serializers.IntegerField(required=False, min_value=0)
         trade_type = serializers.ChoiceField(
-            choices=[TradeType.BUY.value, TradeType.SELL.value], required=False, default=None, allow_null=True
+            choices=[TradeType.BUY.value, TradeType.SELL.value],
+            required=False,
+            default=None,
+            allow_null=True,
+            help_text="거래 타입 (BUY = 1, SELL = 2)",
         )
 
     class OutputSerializer(BaseSerializer):
-        id = serializers.IntegerField()
+        id = serializers.IntegerField(source="stock.id")
         amount = serializers.IntegerField()
         name = serializers.CharField(source="stock.name")
         days_range_rate = serializers.SerializerMethodField()
@@ -229,7 +233,7 @@ class TeacherStockTodayTradeListAPI(APIView):
     def get(self, request: Request, channel_id: int) -> Response:
         """
         선생님 권한의 유저가 오늘의 거래 주식 종목 목록을 조회합니다.
-        url: /teachers/api/v1/channels/<int:channel_id>/stocks/today-trade
+        url: /teachers/api/v1/channels/<int:channel_id>/stocks/trades/today
 
         Args:
             channel_id (int): 채널 아이디
@@ -302,7 +306,7 @@ class TeacherStockDetailAPI(APIView):
             OutputSerializer:
                 id (int): 주식 종목 아이디
                 name (str): 종목명
-                purchase_price (int): 매입가
+                purchase_price (int): 매수가
                 tax (float): 세금
                 standard (str): 기준
                 content (str): 설명

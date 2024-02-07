@@ -1,12 +1,21 @@
-# from jurin.stocks.students.apis import
-# from jurin.common.converts import DateConverter
+from django.urls import path
 
-# register_converter(DateConverter, 'date')
+from jurin.stocks.students.apis import (
+    StudentMyStockDetailAPI,
+    StudentMyStockListAPI,
+    StudentMyStockTradeInfoListAPI,
+    StudentStockDetailAPI,
+    StudentStockListAPI,
+    StudentStockTradeListAPI,
+    StudentStockTradeTodayListAPI,
+)
 
 urlpatterns = [
-    # path('', StudentStockListAPI.as_view(), name="student-stock-list"),
-    # path('/<int:stock_id>', StudentStockDetailAPI.as_view(), name="student-stock-detail"),
-    # path('/today-trade', StudentStockTodayTradeListAPI.as_view(), name="student-stock-today-trade-list"),
-    # path('/<int:stock_id>/<date:trade_date>/trade', StudentStockTradeAPI.as_view(), name="student-stock-trade"),
-    # path('/mine', StudentMyStockListAPI.as_view(), name="student-stock-mine-list"),
+    path("", StudentStockListAPI.as_view(), name="student-stock-list"),
+    path("/trades/today", StudentStockTradeTodayListAPI.as_view(), name="student-stock-trade-today-list"),
+    path("/mine", StudentMyStockListAPI.as_view(), name="student-stock-mine-list"),
+    path("/<int:stock_id>", StudentStockDetailAPI.as_view(), name="student-stock-detail"),
+    path("/<int:stock_id>/mine", StudentMyStockDetailAPI.as_view(), name="student-stock-detail-mine"),
+    path("/<int:stock_id>/trades/mine", StudentMyStockTradeInfoListAPI.as_view(), name="student-stock-trade-info-mine-list"),
+    path("/<int:stock_id>/trades", StudentStockTradeListAPI.as_view(), name="student-stock-trade-today-list"),
 ]

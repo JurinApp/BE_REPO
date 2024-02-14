@@ -141,7 +141,7 @@ class ChannelService:
             channel.save()
 
             # 채널 소유 유저 삭제 대기 상태로 변경
-            channel.user_channel_pivot.update(is_deleted=True, deleted_at=timezone.now())
+            channel.user_channel_pivot.update(is_deleted=True)
 
         # @TODO: Celery Queue로 대기 삭제인 경우 1시간 후 삭제 처리 되도록 처리
 
@@ -162,9 +162,8 @@ class ChannelService:
             raise NotFoundException("User channel does not exist.")
 
         # 채널에서 탈퇴 처리
-        if user_channel.is_deleted is False and user_channel.deleted_at is None:
+        if user_channel.is_deleted is False:
             user_channel.is_deleted = True
-            user_channel.deleted_at = timezone.now()
             user_channel.save()
 
     @transaction.atomic

@@ -217,8 +217,8 @@ class ItemService:
             # 유저 아이템 데이터 갱신
             user_item.refresh_from_db()
 
-            # 유저 아이템 수량이 사용한 수량보다 많으면 사용 여부 변경
-            if user_item.is_used is True and user_item.amout > user_item.used_amount:
+            # 유저 아이템 수량이 0이 아닐 경우 사용 여부 변경
+            if user_item.is_used is True and user_item.amout != 0:
                 user_item.is_used = False
                 user_item.save()
 
@@ -272,7 +272,7 @@ class ItemService:
         user_item.refresh_from_db()
 
         # 유저 아이템 수량이 모두 사용되면 사용 여부 변경
-        if user_item.is_used is False and user_item.amount == user_item.used_amount:
+        if user_item.is_used is False and user_item.amount == 0:
             user_item.is_used = True
             user_item.save()
 

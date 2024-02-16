@@ -161,11 +161,8 @@ class StudentMyItemListAPI(APIView):
         title = serializers.CharField(source="item.title")
         image_url = serializers.URLField(source="item.image_url")
         price = serializers.IntegerField(source="item.price")
-        remaining_amount = serializers.SerializerMethodField()
+        remaining_amount = serializers.IntegerField(source="amount")
         is_used = serializers.BooleanField()
-
-        def get_remaining_amount(self, obj: dict) -> int:
-            return obj.amount - obj.used_amount
 
     @swagger_auto_schema(
         tags=["학생-아이템"],

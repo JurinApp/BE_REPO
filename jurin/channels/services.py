@@ -129,7 +129,7 @@ class ChannelService:
             channel_id (int): 채널 아이디입니다.
         """
         # 유저가 채널을 가지고 있는지 검증
-        channel = self.channel_selector.get_channel_by_user_and_id(channel_id=channel_id)
+        channel = self.channel_selector.get_channel_by_user_and_id(channel_id=channel_id, user=user)
 
         if channel is None:
             raise NotFoundException("Channel does not exist.")

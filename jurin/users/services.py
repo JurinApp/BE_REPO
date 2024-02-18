@@ -150,7 +150,7 @@ class UserService:
         # 선생님인 경우 채널, 유저 채널 삭제 처리
         if user_role == UserRole.TEACHER.value:
             if user.channels.filter(is_pending_deleted=False, pending_deleted_at__isnull=True).exists():
-                user.channels.update(is_pending_delete=True, pending_delete_at=timezone.now())
+                user.channels.update(is_pending_deleted=True, pending_deleted_at=timezone.now())
                 # @TODO: 회원탈퇴의 경우 삭제 대기 상태로 변경하고 큐에 올라가며 1시간 후 삭제 처리
                 # 이미 채널 삭제 대기 상태인 경우는 처리하지 않음
                 # 큐로 올라간 데이터는 삭제 대기 상태 False로 변경 후 모든 데이터가 is_deleted True로 설정

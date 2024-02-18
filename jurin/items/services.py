@@ -218,7 +218,7 @@ class ItemService:
             user_item.refresh_from_db()
 
             # 유저 아이템 수량이 0이 아닐 경우 사용 여부 변경
-            if user_item.is_used is True and user_item.amout != 0:
+            if user_item.is_used is True and user_item.amount != 0:
                 user_item.is_used = False
                 user_item.save()
 

@@ -283,6 +283,7 @@ class TeacherStockDetailAPI(APIView):
         id = serializers.IntegerField()
         name = serializers.CharField()
         purchase_price = serializers.IntegerField()
+        next_day_purchase_price = serializers.IntegerField()
         tax = serializers.FloatField()
         standard = serializers.CharField()
         content = serializers.CharField()
@@ -307,6 +308,7 @@ class TeacherStockDetailAPI(APIView):
                 id (int): 주식 종목 아이디
                 name (str): 종목명
                 purchase_price (int): 매수가
+                next_day_purchase_price (int): 다음날 변경될 매수가
                 tax (float): 세금
                 standard (str): 기준
                 content (str): 설명
@@ -346,6 +348,29 @@ class TeacherStockDetailAPI(APIView):
         },
     )
     def put(self, request: Request, channel_id: int, stock_id: int) -> Response:
+        """
+        선생님 권한의 유저가 주식 종목을 수정합니다.
+        url: /teachers/api/v1/channels/<int:channel_id>/stocks/<int:stock_id>
+
+        Args:
+            channel_id (int): 채널 아이디
+            stock_id (int): 주식 종목 아이디
+            InputSerializer:
+                name (str): 종목명
+                purchase_price (int): 매수가
+                tax (float): 세금
+                standard (str): 기준
+                content (str): 설명
+        Returns:
+            OutputSerializer:
+                id (int): 주식 종목 아이디
+                name (str): 종목명
+                purchase_price (int): 매수가
+                next_day_purchase_price (int): 다음날 변경될 매수가
+                tax (float): 세금
+                standard (str): 기준
+                content (str): 설명
+        """
         input_serializer = self.InputSerializer(data=request.data)
         input_serializer.is_valid(raise_exception=True)
         stock_service = StockService()

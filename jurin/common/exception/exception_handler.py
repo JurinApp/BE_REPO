@@ -5,7 +5,6 @@ from rest_framework.exceptions import APIException
 from rest_framework.response import Response
 
 from config.django.base import logger
-from jurin.common.base.exception import BaseAPIException
 from jurin.common.exception.exceptions import UnknownServerException
 from jurin.common.response import create_response
 
@@ -60,14 +59,8 @@ def handle_api_exception(exc: Exception, context: dict) -> Optional[Response]:
     if isinstance(exc, APIException) is False:
         return None
 
-    message = getattr(exc, "detail")
-    status_code = getattr(exc, "status_code")
-
-    # DRF 내부 오류가 발생한다면 code 속성이 없을 수 있습니다.
-    # code 속성이 없다면, BaseAPIException의 code 값을 기본값으로 사용합니다.
-    if hasattr(exc, "default_code"):
-        code = getattr(exc, "default_code")
-    else:
-        code = getattr(exc, "default_code", BaseAPIException.default_code)
+    message = exc.detail
+    status_code = exc.status_code
+    code = message.code
 
     return create_response(code=code, message=message, status_code=status_code)

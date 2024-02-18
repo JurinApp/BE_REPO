@@ -112,7 +112,7 @@ class ChannelService:
         channel = self.channel_selector.get_channel_by_user(user=user)
 
         if channel is None:
-            raise NotFoundException("Channel does not exist.")
+            raise NotFoundException(detail="Channel does not exist.", code="not_channel")
 
         # 채널 이름 수정
         channel.name = channel_name
@@ -132,7 +132,7 @@ class ChannelService:
         channel = self.channel_selector.get_channel_by_user_and_id(channel_id=channel_id, user=user)
 
         if channel is None:
-            raise NotFoundException("Channel does not exist.")
+            raise NotFoundException(detail="Channel does not exist.", code="not_channel")
 
         # 채널 삭제 대기 상태로 변경
         if channel.is_pending_deleted is False and channel.pending_deleted_at is None:
@@ -159,7 +159,7 @@ class ChannelService:
         user_channel = self.user_channel_selector.get_user_channel_by_channel_id_and_user(channel_id=channel_id, user=user)
 
         if user_channel is None:
-            raise NotFoundException("User channel does not exist.")
+            raise NotFoundException(detail="User channel does not exist.", code="not_user_channel")
 
         # 채널에서 탈퇴 처리
         if user_channel.is_deleted is False:
@@ -182,7 +182,7 @@ class ChannelService:
         channel = self.channel_selector.get_channel_by_user_and_id(user=user, channel_id=channel_id)
 
         if channel is None:
-            raise NotFoundException("Channel does not exist.")
+            raise NotFoundException(detail="Channel does not exist.", code="not_channel")
 
         # 유저 채널이 존재하는지 검증
         user_channels = self.user_channel_selector.get_user_channel_queryset_exec_mine_by_users_ids_and_user_and_channel_id(
@@ -192,7 +192,7 @@ class ChannelService:
         )
 
         if user_channels.count() != len(user_ids):
-            raise NotFoundException("User channel does not exist.")
+            raise NotFoundException(detail="User channel does not exist.", code="not_user_channel")
 
         # 채널 소유 유저인 경우 채널에서 탈퇴시키지 못하도록 검증
         if user_channels.filter(user=user).exists():
@@ -217,7 +217,7 @@ class ChannelService:
         channel = self.channel_selector.get_channel_by_user_and_id(user=user, channel_id=channel_id)
 
         if channel is None:
-            raise NotFoundException("Channel does not exist.")
+            raise NotFoundException(detail="Channel does not exist.", code="not_channel")
 
         # 유저 채널이 존재하는지 검증
         user_channels = self.user_channel_selector.get_user_channel_queryset_exec_mine_by_users_ids_and_user_and_channel_id(
@@ -232,7 +232,7 @@ class ChannelService:
 
         # 유저 채널이 존재하는지 검증
         if user_channels.count() != len(user_ids):
-            raise NotFoundException("User channel does not exist.")
+            raise NotFoundException(detail="User channel does not exist.", code="not_user_channel")
 
         # F 객체를 사용하여 포인트를 지급합니다.
         user_channels.update(point=F("point") + point)

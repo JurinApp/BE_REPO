@@ -48,7 +48,7 @@ class StockService:
         channel = self.channel_selector.get_channel_by_user_and_id(user=user, channel_id=channel_id)
 
         if channel is None:
-            raise NotFoundException("Channel does not exist")
+            raise NotFoundException(detail="Channel does not exist.", code="not_channel")
 
         # 시장 오픈 시간 및 마감 시간 검증
         if channel.market_opening_at <= timezone.now().time() <= channel.market_closing_at:
@@ -98,7 +98,7 @@ class StockService:
         channel = self.channel_selector.get_channel_by_user_and_id(user=user, channel_id=channel_id)
 
         if channel is None:
-            raise NotFoundException("Channel does not exist")
+            raise NotFoundException(detail="Channel does not exist.", code="not_channel")
 
         # 시장 오픈 시간 및 마감 시간 검증
         if channel.market_opening_at <= timezone.now().time() <= channel.market_closing_at:
@@ -108,7 +108,7 @@ class StockService:
         stock = self.stock_selector.get_stock_by_id_and_channel_id(stock_id=stock_id, channel_id=channel_id)
 
         if stock is None:
-            raise NotFoundException("Stock does not exist")
+            raise NotFoundException(detail="Stock does not exist.", code="not_stock")
 
         # 주식 종목 수정
         stock.name = name
@@ -138,7 +138,7 @@ class StockService:
         channel = self.channel_selector.get_channel_by_user_and_id(user=user, channel_id=channel_id)
 
         if channel is None:
-            raise NotFoundException("Channel does not exist.")
+            raise NotFoundException(detail="Channel does not exist.", code="not_channel")
 
         # 시장 오픈 시간 및 마감 시간 검증
         if channel.market_opening_at <= timezone.now().time() <= channel.market_closing_at:
@@ -148,7 +148,7 @@ class StockService:
         stock = self.stock_selector.get_stock_by_id_and_channel_id(stock_id=stock_id, channel_id=channel_id)
 
         if stock is None:
-            raise NotFoundException("Stock does not exist.")
+            raise NotFoundException(detail="Stock does not exist.", code="not_stock")
 
         # 주식 종목 삭제
         if stock.is_deleted is False:
@@ -169,7 +169,7 @@ class StockService:
         channel = self.channel_selector.get_channel_by_user_and_id(user=user, channel_id=channel_id)
 
         if channel is None:
-            raise NotFoundException("Channel does not exist.")
+            raise NotFoundException(detail="Channel does not exist.", code="not_channel")
 
         # 시장 오픈 시간 및 마감 시간 검증
         if channel.market_opening_at <= timezone.now().time() <= channel.market_closing_at:
@@ -179,7 +179,7 @@ class StockService:
         stocks = self.stock_selector.get_stock_queryset_by_ids_and_channel_id(stock_ids=stock_ids, channel_id=channel_id)
 
         if stocks.count() != len(stock_ids):
-            raise NotFoundException("Stock does not exist.")
+            raise NotFoundException(detail="Stock does not exist.", code="not_stock")
 
         # 주식 종목들 삭제
         stocks.filter(is_deleted=False).update(is_deleted=True)
@@ -203,7 +203,7 @@ class StockService:
         )
 
         if user_channel is None:
-            raise NotFoundException("User channel does not exist.")
+            raise NotFoundException(detail="User channel does not exist.", code="not_user_channel")
 
         # @TODO: 시장 오픈 시간 및 마감 시간 검증
 
@@ -214,7 +214,7 @@ class StockService:
         )
 
         if stock is None:
-            raise NotFoundException("Stock does not exist.")
+            raise NotFoundException(detail="Stock does not exist.", code="not_stock")
 
         # 유저 포인트 검증
         if user_channel.point < stock.purchase_price * amount:
@@ -273,7 +273,7 @@ class StockService:
         )
 
         if user_channel is None:
-            raise NotFoundException("User channel does not exist.")
+            raise NotFoundException(detail="User channel does not exist.", code="not_user_channel")
 
         # @TODO: 시장 오픈 시간 및 마감 시간 검증
 
@@ -284,7 +284,7 @@ class StockService:
         )
 
         if stock is None:
-            raise NotFoundException("Stock does not exist.")
+            raise NotFoundException(detail="Stock does not exist.", code="not_stock")
 
         # 유저 포인트 증가 (세금 계산)
         total_purchase_price = stock.purchase_price * amount
@@ -301,7 +301,7 @@ class StockService:
         )
 
         if user_stock is None:
-            raise NotFoundException("User stock does not exist.")
+            raise NotFoundException(detail="User stock does not exist.", code="not_user_stock")
 
         if user_stock.total_stock_amount < amount:
             raise ValidationException("User does not have enough stocks.")

@@ -63,7 +63,7 @@ class TeacherItemListAPI(APIView):
         channel = channel_selector.get_channel_by_user_and_id(user=request.user, channel_id=channel_id)
 
         if channel is None:
-            raise NotFoundException("Channel does not exist.")
+            raise NotFoundException(detail="Channel does not exist.", code="not_channel")
 
         item_selector = ItemSelector()
         items = item_selector.get_item_queryset_by_channel_id(channel_id=channel_id)
@@ -198,14 +198,14 @@ class TeacherItemDetailAPI(APIView):
         channel = channel_selector.get_channel_by_user_and_id(user=request.user, channel_id=channel_id)
 
         if channel is None:
-            raise NotFoundException("Channel does not exist.")
+            raise NotFoundException(detail="Channel does not exist.", code="not_channel")
 
         # 아이템이 존재하는지 검증
         item_selector = ItemSelector()
         item = item_selector.get_item_by_id_and_channel_id(item_id=item_id, channel_id=channel_id)
 
         if item is None:
-            raise NotFoundException("Item does not exist.")
+            raise NotFoundException(detail="Item does not exist.", code="not_item")
 
         item_data = self.OutputSerializer(item).data
         return create_response(item_data, status_code=status.HTTP_200_OK)

@@ -67,7 +67,7 @@ class StudentPostListAPI(APIView):
         )
 
         if user_channel is None:
-            raise NotFoundException("User channel does not exist.")
+            raise NotFoundException(detail="User channel does not exist.", code="not_user_channel")
 
         post_selector = PostSelector()
         posts = post_selector.get_recent_posts_queryset_by_channel_id(channel_id=channel_id)
@@ -123,13 +123,13 @@ class StudentPostDetailAPI(APIView):
         )
 
         if user_channel is None:
-            raise NotFoundException("User channel does not exist.")
+            raise NotFoundException(detail="User channel does not exist.", code="not_user_channel")
 
         post_selector = PostSelector()
-        post = post_selector.get_post_by_id(post_id=post_id)
+        post = post_selector.get_post_by_id_and_channel_id(post_id=post_id, channel_id=channel_id)
 
         if post is None:
-            raise NotFoundException("Post does not exist.")
+            raise NotFoundException(detail="Post does not exist.", code="not_post")
 
         output_serializer = self.OutputSerializer(post)
         return create_response(output_serializer.data, status_code=status.HTTP_200_OK)

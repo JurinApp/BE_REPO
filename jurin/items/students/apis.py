@@ -74,7 +74,7 @@ class StudentItemListAPI(APIView):
         )
 
         if user_channel is None:
-            raise NotFoundException("User channel does not exist.")
+            raise NotFoundException(detail="User channel does not exist.", code="not_user_channel")
 
         item_selector = ItemSelector()
         items = item_selector.get_item_queryset_by_channel_id(channel_id=channel_id)
@@ -202,7 +202,7 @@ class StudentMyItemListAPI(APIView):
         )
 
         if user_channel is None:
-            raise NotFoundException("User channel does not exist.")
+            raise NotFoundException(detail="User channel does not exist.", code="not_user_channel")
 
         user_item_selector = UserItemSelector()
         user_item = user_item_selector.get_user_item_queryset_with_item_desc_is_used_by_user_and_is_used(
@@ -314,7 +314,7 @@ class StudentMyItemDetailLogAPI(APIView):
         )
 
         if user_channel is None:
-            raise NotFoundException("User channel does not exist.")
+            raise NotFoundException(detail="User channel does not exist.", code="not_user_channel")
 
         # 유저 아이템이 존재하는지 검증
         user_item_selector = UserItemSelector()
@@ -324,7 +324,7 @@ class StudentMyItemDetailLogAPI(APIView):
         )
 
         if user_item is None:
-            raise NotFoundException("User item does not exist.")
+            raise NotFoundException(detail="User item does not exist.", code="not_user_item")
 
         user_item_log_selector = UserItemLogSelector()
         user_item_logs = user_item_log_selector.get_user_item_log_queryset_with_item_by_user_item_id(

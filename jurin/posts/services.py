@@ -30,7 +30,7 @@ class PostService:
         channel = self.channel_selector.get_channel_by_user_and_id(user=user, channel_id=channel_id)
 
         if channel is None:
-            raise NotFoundException("Channel does not exist.")
+            raise NotFoundException(detail="Channel does not exist.", code="not_channel")
 
         # 게시글 생성
         post = Post.objects.create(
@@ -62,13 +62,13 @@ class PostService:
         channel = self.channel_selector.get_channel_by_user_and_id(user=user, channel_id=channel_id)
 
         if channel is None:
-            raise NotFoundException("Channel does not exist.")
+            raise NotFoundException(detail="Channel does not exist.", code="not_channel")
 
         # 게시글이 존재하는지 검증
         post = self.post_selector.get_post_by_id_and_channel_id(post_id=post_id, channel_id=channel_id)
 
         if post is None:
-            raise NotFoundException("Post does not exist.")
+            raise NotFoundException(detail="Post does not exist.", code="not_post")
 
         # 게시글 수정
         post.main_title = main_title
@@ -93,13 +93,13 @@ class PostService:
         channel = self.channel_selector.get_channel_by_user_and_id(user=user, channel_id=channel_id)
 
         if channel is None:
-            raise NotFoundException("Channel does not exist.")
+            raise NotFoundException(detail="Channel does not exist.", code="not_channel")
 
         # 게시글이 존재하는지 검증
         post = self.post_selector.get_post_by_id_and_channel_id(post_id=post_id, channel_id=channel_id)
 
         if post is None:
-            raise NotFoundException("Post does not exist.")
+            raise NotFoundException(detail="Post does not exist.", code="not_post")
 
         # 게시글 삭제
         if post.is_deleted is False:
@@ -119,13 +119,13 @@ class PostService:
         channel = self.channel_selector.get_channel_by_user_and_id(user=user, channel_id=channel_id)
 
         if channel is None:
-            raise NotFoundException("Channel does not exist.")
+            raise NotFoundException(detail="Channel does not exist.", code="not_channel")
 
         # 게시글들이 존재하는지 검증
         posts = self.post_selector.get_post_queryset_by_ids_and_channel_id(post_ids=post_ids, channel_id=channel_id)
 
         if posts.count() != len(post_ids):
-            raise NotFoundException("Post does not exist.")
+            raise NotFoundException(detail="Post does not exist.", code="not_post")
 
         # 게시글들 삭제
         posts.filter(is_deleted=False).update(is_deleted=True)

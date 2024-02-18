@@ -39,7 +39,7 @@ class ItemService:
         channel = self.channel_selector.get_channel_by_user_and_id(user=user, channel_id=channel_id)
 
         if channel is None:
-            raise NotFoundException("Channel does not exist.")
+            raise NotFoundException(detail="Channel does not exist.", code="not_channel")
 
         # 시장 오픈 시간 및 마감 시간 검증
         if channel.market_opening_at <= timezone.now().time() <= channel.market_closing_at:
@@ -80,7 +80,7 @@ class ItemService:
         channel = self.channel_selector.get_channel_by_user_and_id(user=user, channel_id=channel_id)
 
         if channel is None:
-            raise NotFoundException("Channel does not exist.")
+            raise NotFoundException(detail="Channel does not exist.", code="not_channel")
 
         # 시장 오픈 시간 및 마감 시간 검증
         if channel.market_opening_at <= timezone.now().time() <= channel.market_closing_at:
@@ -90,7 +90,7 @@ class ItemService:
         item = self.item_selector.get_item_by_id_and_channel_id(item_id=item_id, channel_id=channel_id)
 
         if item is None:
-            raise NotFoundException("Item does not exist.")
+            raise NotFoundException(detail="Item does not exist.", code="not_item")
 
         # 아이템 수정
         item.title = title
@@ -116,7 +116,7 @@ class ItemService:
         channel = self.channel_selector.get_channel_by_user_and_id(user=user, channel_id=channel_id)
 
         if channel is None:
-            raise NotFoundException("Channel does not exist.")
+            raise NotFoundException(detail="Channel does not exist.", code="not_channel")
 
         # 시장 오픈 시간 및 마감 시간 검증
         if channel.market_opening_at <= timezone.now().time() <= channel.market_closing_at:
@@ -126,7 +126,7 @@ class ItemService:
         item = self.item_selector.get_item_by_id_and_channel_id(item_id=item_id, channel_id=channel_id)
 
         if item is None:
-            raise NotFoundException("Item does not exist.")
+            raise NotFoundException(detail="Item does not exist.", code="not_item")
 
         # 아이템 삭제
         if item.is_deleted is False:
@@ -147,7 +147,7 @@ class ItemService:
         channel = self.channel_selector.get_channel_by_user_and_id(user=user, channel_id=channel_id)
 
         if channel is None:
-            raise NotFoundException("Channel does not exist.")
+            raise NotFoundException(detail="Channel does not exist.", code="not_channel")
 
         # 시장 오픈 시간 및 마감 시간 검증
         if channel.market_opening_at <= timezone.now().time() <= channel.market_closing_at:
@@ -157,7 +157,7 @@ class ItemService:
         items = self.item_selector.get_item_queryset_by_ids_and_channel_id(item_ids=item_ids, channel_id=channel_id)
 
         if items.count() != len(item_ids):
-            raise NotFoundException("Item does not exist.")
+            raise NotFoundException(detail="Item does not exist.", code="not_item")
 
         # 아이템들 삭제
         items.filter(is_deleted=False).update(is_deleted=True)
@@ -182,13 +182,13 @@ class ItemService:
         )
 
         if user_channel is None:
-            raise NotFoundException("User channel does not exist.")
+            raise NotFoundException(detail="User channel does not exist.", code="not_user_channel")
 
         # 아이템이 존재하는지 검증
         item = self.item_selector.get_item_by_id_and_channel_id(item_id=item_id, channel_id=channel_id)
 
         if item is None:
-            raise NotFoundException("Item does not exist.")
+            raise NotFoundException(detail="Item does not exist.", code="not_item")
 
         # 아이템 데이터와 입력값 검증
         if item.amount < amount:
@@ -253,13 +253,13 @@ class ItemService:
         )
 
         if user_channel is None:
-            raise NotFoundException("User channel does not exist.")
+            raise NotFoundException(detail="User channel does not exist.", code="not_user_channel")
 
         # 유저 아이템이 존재하는지 검증
         user_item = self.user_item_selector.get_user_item_by_item_id_and_user(item_id=item_id, user=user)
 
         if user_item is None:
-            raise NotFoundException("User item does not exist.")
+            raise NotFoundException(detail="User item does not exist.", code="not_user_item")
 
         # 유저 아이템 데이터와 입력값 검증
         if user_item.amount < amount:

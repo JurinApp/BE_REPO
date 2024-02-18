@@ -82,7 +82,7 @@ class StudentStockListAPI(APIView):
         )
 
         if user_channel is None:
-            raise NotFoundException("User channel does not exist.")
+            raise NotFoundException(detail="User channel does not exist.", code="not_user_channel")
 
         stock_selector = StockSelector()
         stocks = stock_selector.get_stock_queryset_by_channel_id(channel_id=channel_id)
@@ -173,7 +173,7 @@ class StudentStockTradeTodayListAPI(APIView):
         )
 
         if user_channel is None:
-            raise NotFoundException("User channel does not exist.")
+            raise NotFoundException(detail="User channel does not exist.", code="not_user_channel")
 
         user_trade_info_selector = UserTradeInfoSelector()
         user_trade_infos = user_trade_info_selector.get_user_trade_info_queryset_with_stock_by_trade_date_and_channel_id_and_trade_type(
@@ -253,7 +253,7 @@ class StudentMyStockListAPI(APIView):
         )
 
         if user_channel is None:
-            raise NotFoundException("User channel does not exist.")
+            raise NotFoundException(detail="User channel does not exist.", code="not_user_channel")
 
         user_stock_selector = UserStockSelector()
         user_stocks = user_stock_selector.get_user_stock_queryset_with_stock_by_user(user=request.user)
@@ -329,7 +329,7 @@ class StudentStockDetailAPI(APIView):
         )
 
         if user_channel is None:
-            raise NotFoundException("User channel does not exist.")
+            raise NotFoundException(detail="User channel does not exist.", code="not_user_channel")
 
         # 주식 종목이 존재하는지 검증
         stock_selector = StockSelector()
@@ -339,7 +339,7 @@ class StudentStockDetailAPI(APIView):
         )
 
         if stock is None:
-            raise NotFoundException("Stock does not exist.")
+            raise NotFoundException(detail="Stock does not exist.", code="not_stock")
 
         # 주식 종목의 일별 가격을 조회
         daily_price_selector = DailyPriceSelector()
@@ -453,7 +453,7 @@ class StudentMyStockDetailAPI(APIView):
         )
 
         if user_channel is None:
-            raise NotFoundException("User channel does not exist.")
+            raise NotFoundException(detail="User channel does not exist.", code="not_user_channel")
 
         # 주식 종목이 존재하는지 검증
         stock_selector = StockSelector()
@@ -463,7 +463,7 @@ class StudentMyStockDetailAPI(APIView):
         )
 
         if stock is None:
-            raise NotFoundException("Stock does not exist.")
+            raise NotFoundException(detail="Stock does not exist.", code="not_stock")
 
         user_stock_selector = UserStockSelector()
         user_stock = user_stock_selector.get_user_stock_by_user_and_stock_id(user=request.user, stock_id=stock_id)
@@ -557,7 +557,7 @@ class StudentMyStockTradeInfoListAPI(APIView):
         )
 
         if user_channel is None:
-            raise NotFoundException("User channel does not exist.")
+            raise NotFoundException(detail="User channel does not exist.", code="not_user_channel")
 
         # 주식 종목이 존재하는지 검증
         stock_selector = StockSelector()
@@ -567,7 +567,7 @@ class StudentMyStockTradeInfoListAPI(APIView):
         )
 
         if stock is None:
-            raise NotFoundException("Stock does not exist.")
+            raise NotFoundException(detail="Stock does not exist.", code="not_stock")
 
         user_trade_info_selector = UserTradeInfoSelector()
         user_trade_infos = user_trade_info_selector.get_user_trade_info_queryset_with_stock_by_trade_date_and_stock_id_and_user(
@@ -635,7 +635,7 @@ class StudentStockTradeListAPI(APIView):
         )
 
         if user_channel is None:
-            raise NotFoundException("User channel does not exist.")
+            raise NotFoundException(detail="User channel does not exist.", code="not_user_channel")
 
         # 주식 종목이 존재하는지 검증
         stock_selector = StockSelector()
@@ -645,7 +645,7 @@ class StudentStockTradeListAPI(APIView):
         )
 
         if stock is None:
-            raise NotFoundException("Stock does not exist.")
+            raise NotFoundException(detail="Stock does not exist.", code="not_stock")
 
         # 주식 종목의 판매 정보 목록 조회 (매도, 매수)
         user_trade_info_selector = UserTradeInfoSelector()

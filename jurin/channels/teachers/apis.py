@@ -47,7 +47,7 @@ class TeacherChannelAPI(APIView):
         channel = channel_selector.get_channel_by_user_channel_user(user=request.user)
 
         if channel is None:
-            raise NotFoundException("You don't have a channel.")
+            raise NotFoundException(detail="Channel does not exist.", code="not_channel")
 
         channel_data = self.OutputSerializer(channel).data
         return create_response(channel_data, status_code=status.HTTP_200_OK)
@@ -162,7 +162,7 @@ class TeacherChanneManagementAPI(APIView):
         channel = channel_selector.get_channel_by_user_and_id(user=request.user, channel_id=channel_id)
 
         if channel is None:
-            raise NotFoundException("Channel does not exist.")
+            raise NotFoundException(detail="Channel does not exist.", code="not_channel")
 
         # 채널에 가입한 유저 채널 조회
         user_channel_selector = UserChannelSelector()

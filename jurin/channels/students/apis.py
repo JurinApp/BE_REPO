@@ -49,7 +49,7 @@ class StudentChannelAPI(APIView):
         channel = channel_selector.get_one_day_ago_valid_channel_by_user_channel_user(user=request.user)
 
         if channel is None:
-            raise NotFoundException("You don't have a channel.")
+            raise NotFoundException(detail="Channel does not exist.", code="not_channel")
 
         channel_data = self.OutputSerializer(channel).data
         return create_response(channel_data, status_code=status.HTTP_200_OK)

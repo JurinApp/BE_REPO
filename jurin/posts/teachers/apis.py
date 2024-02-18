@@ -65,7 +65,7 @@ class TeacherPostListAPI(APIView):
         channel = channel_selector.get_channel_by_user_and_id(user=request.user, channel_id=channel_id)
 
         if channel is None:
-            raise NotFoundException("Channel does not exist.")
+            raise NotFoundException(detail="Channel does not exist.", code="not_channel")
 
         post_selector = PostSelector()
         posts = post_selector.get_recent_posts_queryset_by_channel_id(channel_id=channel_id)
@@ -197,14 +197,14 @@ class TeacherPostDetailAPI(APIView):
         channel = channel_selector.get_channel_by_user_and_id(user=request.user, channel_id=channel_id)
 
         if channel is None:
-            raise NotFoundException("Channel does not exist.")
+            raise NotFoundException(detail="Channel does not exist.", code="not_channel")
 
         # 게시글이 존재하는지 검증
         post_selector = PostSelector()
         post = post_selector.get_post_by_id_and_channel_id(channel_id=channel_id, post_id=post_id)
 
         if post is None:
-            raise NotFoundException("Post does not exist.")
+            raise NotFoundException(detail="Post does not exist.", code="not_post")
 
         post_data = self.OutputSerializer(post).data
         return create_response(post_data, status_code=status.HTTP_200_OK)

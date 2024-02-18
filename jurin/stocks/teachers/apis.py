@@ -77,7 +77,7 @@ class TeacherStockListAPI(APIView):
         channel = channel_selector.get_channel_by_user_and_id(user=request.user, channel_id=channel_id)
 
         if channel is None:
-            raise NotFoundException("Channel does not exist.")
+            raise NotFoundException(detail="Channel does not exist.", code="not_channel")
 
         stock_selector = StockSelector()
         stocks = stock_selector.get_stock_queryset_by_channel_id(channel_id=channel_id)
@@ -257,7 +257,7 @@ class TeacherStockTradeTodayListAPI(APIView):
         channel = channel_selector.get_channel_by_user_and_id(user=request.user, channel_id=channel_id)
 
         if channel is None:
-            raise NotFoundException("Channel does not exist.")
+            raise NotFoundException(detail="Channel does not exist.", code="not_channel")
 
         user_trade_info_selector = UserTradeInfoSelector()
         user_trade_infos = user_trade_info_selector.get_user_trade_info_queryset_with_stock_by_trade_date_and_channel_id_and_trade_type(
@@ -316,7 +316,7 @@ class TeacherStockDetailAPI(APIView):
         channel = channel_selector.get_channel_by_user_and_id(user=request.user, channel_id=channel_id)
 
         if channel is None:
-            raise NotFoundException("Channel does not exist.")
+            raise NotFoundException(detail="Channel does not exist.", code="not_channel")
 
         # 주식 종목이 존재하는지 검증
         stock_selector = StockSelector()
@@ -325,7 +325,7 @@ class TeacherStockDetailAPI(APIView):
             channel_id=channel_id,
         )
         if stock is None:
-            raise NotFoundException("Stock does not exist.")
+            raise NotFoundException(detail="Stock does not exist.", code="not_stock")
 
         stock_data = self.OutputSerializer(stock).data
         return create_response(stock_data, status_code=status.HTTP_200_OK)

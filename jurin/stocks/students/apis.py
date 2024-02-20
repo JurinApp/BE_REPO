@@ -354,7 +354,7 @@ class StudentStockDetailAPI(APIView):
         return create_response(stock_data, status_code=status.HTTP_200_OK)
 
     class PostInputSerializer(BaseSerializer):
-        trade_type = serializers.ChoiceField(choices=[TradeType.BUY.value, TradeType.SELL.value])
+        trade_type = serializers.ChoiceField(choices=[TradeType.BUY.value, TradeType.SELL.value], help_text="1: 매수, 2: 매도")
         amount = serializers.IntegerField()
 
     class PostOutputSerializer(BaseSerializer):

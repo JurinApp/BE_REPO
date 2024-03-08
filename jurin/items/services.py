@@ -129,9 +129,7 @@ class ItemService:
             raise NotFoundException(detail="Item does not exist.", code="not_item")
 
         # 아이템 삭제
-        if item.is_deleted is False:
-            item.is_deleted = True
-            item.save()
+        item.delete()
 
     @transaction.atomic
     def delete_items(self, channel_id: int, item_ids: list[int], user: User):
@@ -160,7 +158,7 @@ class ItemService:
             raise NotFoundException(detail="Item does not exist.", code="not_item")
 
         # 아이템들 삭제
-        items.filter(is_deleted=False).update(is_deleted=True)
+        items.delete()
 
     @transaction.atomic
     def buy_item(self, channel_id: int, item_id: int, price: int, amount: int, user: User) -> Item:
@@ -177,9 +175,7 @@ class ItemService:
             Item: 아이템 모델입니다.
         """
         # 유저 채널이 존재하는지 검증
-        user_channel = self.user_channel_selector.get_non_pending_deleted_user_channel_by_channel_id_and_user(
-            user=user, channel_id=channel_id
-        )
+        user_channel = self.user_channel_selector.get_user_channel_by_channel_id_and_user_for_student(user=user, channel_id=channel_id)
 
         if user_channel is None:
             raise NotFoundException(detail="User channel does not exist.", code="not_user_channel")
@@ -248,9 +244,7 @@ class ItemService:
             UserItem: 유저 아이템 모델입니다.
         """
         # 유저 채널이 존재하는지 검증
-        user_channel = self.user_channel_selector.get_non_pending_deleted_user_channel_by_channel_id_and_user(
-            user=user, channel_id=channel_id
-        )
+        user_channel = self.user_channel_selector.get_user_channel_by_channel_id_and_user_for_student(user=user, channel_id=channel_id)
 
         if user_channel is None:
             raise NotFoundException(detail="User channel does not exist.", code="not_user_channel")

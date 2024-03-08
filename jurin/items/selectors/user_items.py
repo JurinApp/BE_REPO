@@ -10,7 +10,6 @@ class UserItemSelector:
     def get_user_item_by_item_id_and_user(self, item_id: int, user: User) -> Optional[UserItem]:
         """
         이 함수는 아이템 아이디와 유저로 유저 아이템을 조회합니다.
-        유저 아이템이 삭제되지 않은 것만 조회합니다.
 
         Args:
             item_id (int): 아이템 아이디입니다.
@@ -22,7 +21,6 @@ class UserItemSelector:
             return UserItem.objects.filter(
                 item_id=item_id,
                 user=user,
-                is_deleted=False,
             ).get()
 
         except UserItem.DoesNotExist:
@@ -31,7 +29,6 @@ class UserItemSelector:
     def get_user_item_queryset_with_item_desc_is_used_by_user_and_is_used(self, user: User, is_used: Optional[bool]) -> QuerySet:
         """
         이 함수는 유저와 사용 여부로 아이템과 사용 여부 내림차순으로 아이템과 유저 아이템을 조회합니다.
-        유저 아이템이 삭제되지 않은 것만 조회합니다.
 
         Args:
             user (User): 유저 모델입니다.
@@ -48,7 +45,6 @@ class UserItemSelector:
             UserItem.objects.select_related("item")
             .filter(
                 user=user,
-                is_deleted=False,
             )
             .filter(user_item_qs)
             .order_by("is_used")

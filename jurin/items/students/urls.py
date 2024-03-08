@@ -9,9 +9,9 @@ from jurin.items.students.apis import (
 )
 
 urlpatterns = [
-    path("", StudentItemListAPI.as_view(), name="student-item-list"),
-    path("/<int:item_id>", StudentDetailAPI.as_view(), name="student-item-detail"),
-    path("/mine", StudentMyItemListAPI.as_view(), name="student-item-mine-list"),
-    path("/mine/<int:item_id>", StudentMyItemDetailAPI.as_view(), name="student-mine-item-detail"),
-    path("/mine/<int:item_id>/logs", StudentMyItemDetailLogAPI.as_view(), name="student-mine-item-detail-log"),
+    path("", StudentItemListAPI.as_view(), name="student_item_list"),
+    path("/<int:item_id>", StudentDetailAPI.as_view(), name="student_item_detail"),
+    path("/mine", StudentMyItemListAPI.as_view(), name="student_item_mine_list"),
+    path("/mine/<int:item_id>", StudentMyItemDetailAPI.as_view(), name="student_mine_item_detail"),
+    path("/mine/<int:item_id>/logs", StudentMyItemDetailLogAPI.as_view(), name="student_mine_item_detail_log"),
 ]

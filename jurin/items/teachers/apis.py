@@ -115,12 +115,8 @@ class TeacherItemListAPI(APIView):
         item_service = ItemService()
         item = item_service.create_item(
             channel_id=channel_id,
-            title=input_serializer.validated_data["title"],
-            image_url=input_serializer.validated_data["image_url"],
-            amount=input_serializer.validated_data["amount"],
-            price=input_serializer.validated_data["price"],
-            content=input_serializer.validated_data["content"],
             user=request.user,
+            **input_serializer.validated_data,
         )
         item_data = self.OutputSerializer(item).data
         return create_response(item_data, status_code=status.HTTP_201_CREATED)
@@ -254,12 +250,8 @@ class TeacherItemDetailAPI(APIView):
         item = item_service.update_item(
             channel_id=channel_id,
             item_id=item_id,
-            title=input_serializer.validated_data["title"],
-            image_url=input_serializer.validated_data["image_url"],
-            amount=input_serializer.validated_data["amount"],
-            price=input_serializer.validated_data["price"],
-            content=input_serializer.validated_data["content"],
             user=request.user,
+            **input_serializer.validated_data,
         )
         item_data = self.OutputSerializer(item).data
         return create_response(item_data, status_code=status.HTTP_200_OK)

@@ -69,9 +69,7 @@ class StudentItemListAPI(APIView):
 
         # 유저 채널이 존재하는지 검증
         user_channel_selector = UserChannelSelector()
-        user_channel = user_channel_selector.get_non_pending_deleted_user_channel_by_channel_id_and_user(
-            user=request.user, channel_id=channel_id
-        )
+        user_channel = user_channel_selector.get_user_channel_by_channel_id_and_user_for_student(user=request.user, channel_id=channel_id)
 
         if user_channel is None:
             raise NotFoundException(detail="User channel does not exist.", code="not_user_channel")
@@ -137,8 +135,7 @@ class StudentDetailAPI(APIView):
             user=request.user,
             channel_id=channel_id,
             item_id=item_id,
-            price=input_serializer.validated_data["price"],
-            amount=input_serializer.validated_data["amount"],
+            **input_serializer.validated_data,
         )
         item_data = self.OutputSerializer(item).data
         return create_response(item_data, status_code=status.HTTP_200_OK)
@@ -197,17 +194,17 @@ class StudentMyItemListAPI(APIView):
 
         # 유저 채널이 존재하는지 검증
         user_channel_selector = UserChannelSelector()
-        user_channel = user_channel_selector.get_non_pending_deleted_user_channel_by_channel_id_and_user(
-            user=request.user, channel_id=channel_id
-        )
+        user_channel = user_channel_selector.get_user_channel_by_channel_id_and_user_for_student(user=request.user, channel_id=channel_id)
 
         if user_channel is None:
             raise NotFoundException(detail="User channel does not exist.", code="not_user_channel")
 
+        is_used = filter_serializer.validated_data.get("is_used")
+
         user_item_selector = UserItemSelector()
         user_item = user_item_selector.get_user_item_queryset_with_item_desc_is_used_by_user_and_is_used(
             user=request.user,
-            is_used=filter_serializer.validated_data.get("is_used"),
+            is_used=is_used,
         )
         pagination_items_data = get_paginated_data(
             pagination_class=self.Pagination,
@@ -255,7 +252,7 @@ class StudentMyItemDetailAPI(APIView):
                 id (int): 아이템 고유 아이디
                 title (str): 제목
                 amount (int): 수량
-                used_amount (int): 사용 수량
+                used_amount (int): 사용한 수량
 
         """
         input_serializer = self.InputSerializer(data=request.data)
@@ -265,7 +262,7 @@ class StudentMyItemDetailAPI(APIView):
             user=request.user,
             channel_id=channel_id,
             item_id=item_id,
-            amount=input_serializer.validated_data["amount"],
+            **input_serializer.validated_data,
         )
         user_item_data = self.OutputSerializer(user_item).data
         return create_response(user_item_data, status_code=status.HTTP_200_OK)
@@ -295,7 +292,7 @@ class StudentMyItemDetailLogAPI(APIView):
     def get(self, request: Request, channel_id: int, item_id: int) -> Response:
         """
         학생 권한의 유저가 자신의 아이템 상세 로그를 조회합니다.
-        url: /teachers/api/v1/channels/<int:channel_id>/items/<int:item_id>/mine/
+        url: /teachers/api/v1/channels/<int:channel_id>/items/mine/<int:item_id>/logs
 
         Args:
             channel_id (int): 채널 고유 아이디
@@ -309,9 +306,7 @@ class StudentMyItemDetailLogAPI(APIView):
         """
         # 유저 채널이 존재하는지 검증
         user_channel_selector = UserChannelSelector()
-        user_channel = user_channel_selector.get_non_pending_deleted_user_channel_by_channel_id_and_user(
-            user=request.user, channel_id=channel_id
-        )
+        user_channel = user_channel_selector.get_user_channel_by_channel_id_and_user_for_student(user=request.user, channel_id=channel_id)
 
         if user_channel is None:
             raise NotFoundException(detail="User channel does not exist.", code="not_user_channel")

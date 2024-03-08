@@ -14,7 +14,6 @@ class Stock(BaseModel):
     tax = models.FloatField(verbose_name="세금")
     standard = models.CharField(max_length=32, verbose_name="기준")
     content = models.TextField(verbose_name="내용")
-    is_deleted = models.BooleanField(default=False, verbose_name="삭제 여부")
     channel = models.ForeignKey(Channel, on_delete=models.CASCADE, related_name="stocks", verbose_name="채널 고유 아이디")
     user_trade_info = models.ManyToManyField(User, through="UserTradeInfo", verbose_name="유저 주식 정보", related_name="stock")
 
@@ -33,7 +32,6 @@ class DailyPrice(BaseModel):
     price = models.PositiveIntegerField(verbose_name="주가")
     volume = models.PositiveIntegerField(verbose_name="거래량")
     transaction_amount = models.PositiveIntegerField(verbose_name="거래 대금")
-    is_deleted = models.BooleanField(default=False, verbose_name="삭제 여부")
     stock = models.ForeignKey(Stock, on_delete=models.CASCADE, related_name="daily_prices", verbose_name="주식 고유 아이디")
 
     def __str__(self):
@@ -53,7 +51,6 @@ class UserTradeInfo(BaseModel):
     trade_type = models.IntegerField(verbose_name="거래 유형")
     price = models.PositiveIntegerField(verbose_name="단가")
     amount = models.PositiveIntegerField(verbose_name="수량")
-    is_deleted = models.BooleanField(default=False, verbose_name="삭제 여부")
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="user_trade_info_pivot", verbose_name="유저 고유 아이디")
     stock = models.ForeignKey(Stock, on_delete=models.CASCADE, related_name="user_trade_info_pivot", verbose_name="주식 고유 아이디")
 
@@ -71,7 +68,6 @@ class UserStock(BaseModel):
     stock = models.ForeignKey(Stock, on_delete=models.CASCADE, related_name="user_stocks", verbose_name="주식 고유 아이디")
     total_stock_amount = models.PositiveIntegerField(verbose_name="총 주식 수량")
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="user_stocks", verbose_name="유저 고유 아이디")
-    is_deleted = models.BooleanField(default=False, verbose_name="삭제 여부")
 
     def __str__(self):
         return f"[{self.id}]: {self.stock.name} - {self.user.username}"

@@ -11,7 +11,6 @@ class Post(BaseModel):
     content = models.TextField(verbose_name="내용")
     date = models.DateField(verbose_name="날짜")
     channel = models.ForeignKey(Channel, on_delete=models.CASCADE, verbose_name="채널 고유 아이디", related_name="posts")
-    is_deleted = models.BooleanField(default=False, verbose_name="삭제 여부")
 
     def __str__(self):
         return f"[{self.id}]: {self.title}"

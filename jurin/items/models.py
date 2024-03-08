@@ -14,7 +14,6 @@ class Item(BaseModel):
     price = models.PositiveIntegerField(verbose_name="가격")
     channel = models.ForeignKey(Channel, on_delete=models.CASCADE, verbose_name="채널 고유 아이디", related_name="items")
     user_item = models.ManyToManyField(User, through="UserItem", verbose_name="유저 아이템", related_name="items")
-    is_deleted = models.BooleanField(default=False, verbose_name="삭제 여부")
 
     def __str__(self):
         return f"[{self.id}]: {self.title}"
@@ -32,7 +31,6 @@ class UserItem(BaseModel):
     is_used = models.BooleanField(default=False, verbose_name="사용 여부")
     item = models.ForeignKey(Item, on_delete=models.CASCADE, verbose_name="아이템 고유 아이디", related_name="user_item_pivot")
     user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name="유저 고유 아이디", related_name="user_item_pivot")
-    is_deleted = models.BooleanField(default=False, verbose_name="삭제 여부")
 
     def __str__(self):
         return f"[{self.id}]: {self.user.username} - {self.item.title}"
@@ -48,7 +46,6 @@ class UserItemLog(BaseModel):
     id = models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name="유저 아이템 로그 고유 아이디")
     used_at = models.DateTimeField(verbose_name="사용 일시")
     user_item = models.ForeignKey(UserItem, on_delete=models.CASCADE, verbose_name="유저 아이템 고유 아이디", related_name="user_item_logs")
-    is_deleted = models.BooleanField(default=False, verbose_name="삭제 여부")
 
     def __str__(self):
         return f"[{self.id}]: {self.user_item.item.title} - {self.used_at}"

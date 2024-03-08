@@ -3,6 +3,8 @@ from typing import Optional, Tuple
 from django.db import transaction
 from django.utils import timezone
 
+from jurin.channels.selectors.channels import ChannelSelector
+from jurin.channels.tasks import delete_channel_task, drop_celery_task
 from jurin.common.exception.exceptions import ValidationException
 from jurin.users.enums import UserRole
 from jurin.users.models import User
@@ -13,6 +15,7 @@ from jurin.users.selectors.verification_codes import VerificationCodeSelector
 class UserService:
     def __init__(self):
         self.user_selector = UserSelector()
+        self.channel_selector = ChannelSelector()
 
     @transaction.atomic
     def create_user(
@@ -121,16 +124,21 @@ class UserService:
 
         # 선생님인 경우 채널 복구 처리
         if user_role == UserRole.TEACHER.value:
-            if user.channels.filter(is_pending_deleted=True, pending_deleted_at__isnull=False).exists():
-                user.channels.update(is_pending_deleted=False, pending_deleted_at=None)
-                # @TODO: 복구의 경우 레디스 큐로 올라 간 것을 삭제 처리
+            channel = self.channel_selector.get_pending_deleted_channel_by_user_order_by_pending_deleted_at_desc(user=user)
+
+            if channel is not None:
+                channel.is_pending_deleted = False
+                channel.pending_deleted_at = None
+                channel.save()
+
+                # 큐에 올라간 채널 데이터 삭제
+                drop_celery_task.apply_async(args=["delete_channel_task", [channel.id]])
 
     @transaction.atomic
     def soft_delete_user(self, password: str, user: User, user_role: int):
         """
         이 함수는 비밀번호 검증 후 회원 탈퇴 처리를 합니다.
         선생님인 경우 채널을 삭제 대기 상태로 변경하고 일정 시간 후 삭제 처리를 합니다.
-        학생인 경우 유저 채널 삭제, 유저 아이템 삭제 처리를 합니다.
 
         Args:
             password (str): 비밀번호입니다.
@@ -147,15 +155,22 @@ class UserService:
             user.is_deleted = True
             user.save()
 
-        # 선생님인 경우 채널, 유저 채널 삭제 처리
+        # 선생님인 경우 채널
         if user_role == UserRole.TEACHER.value:
-            if user.channels.filter(is_pending_deleted=False, pending_deleted_at__isnull=True).exists():
-                user.channels.update(is_pending_deleted=True, pending_deleted_at=timezone.now())
-                # @TODO: 회원탈퇴의 경우 삭제 대기 상태로 변경하고 큐에 올라가며 1시간 후 삭제 처리
-                # 이미 채널 삭제 대기 상태인 경우는 처리하지 않음
-                # 큐로 올라간 데이터는 삭제 대기 상태 False로 변경 후 모든 데이터가 is_deleted True로 설정
+            channel = self.channel_selector.get_channel_by_user(user=user)
 
-        # 학생인 경우 유저 채널 삭제 처리
-        if user_role == UserRole.STUDENT.value:
-            user.user_channel_pivot.update(is_deleted=True)
-            user.user_item_pivot.update(is_deleted=True)
+            if channel is not None:
+                channel.is_pending_deleted = True
+                channel.pending_deleted_at = timezone.now()
+                channel.save()
+
+                # 채널 삭제 테스크를 60분 후에 실행
+                delete_channel_task.apply_async(args=[channel.id], countdown=3600)
+
+    @transaction.atomic
+    def hard_bulk_delete_users(self):
+        """
+        이 함수는 7일 이상 탈퇴한 유저들을 삭제합니다.
+        """
+        users = self.user_selector.get_deleted_user_queryset()
+        users.delete()

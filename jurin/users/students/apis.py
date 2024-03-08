@@ -102,7 +102,7 @@ class StudentProfileAPI(APIView):
         user_service = UserService()
         user_service.soft_delete_user(
             user=request.user,
-            password=input_serializer.validated_data["password"],
             user_role=UserRole.STUDENT.value,
+            **input_serializer.validated_data,
         )
         return create_response(status_code=status.HTTP_204_NO_CONTENT)

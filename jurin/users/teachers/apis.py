@@ -97,18 +97,20 @@ class TeacherProfileAPI(APIView):
         input_serializer = self.PutInputSerializer(data=request.data)
         input_serializer.is_valid(raise_exception=True)
 
+        nickname = input_serializer.validated_data.get("nickname")
+        school_name = input_serializer.validated_data.get("school_name")
+        channel_name = input_serializer.validated_data.get("channel_name")
+
         with transaction.atomic():
             # 유저 정보 수정
             user_service = UserService()
             user = user_service.update_user(
                 user=request.user,
-                nickname=input_serializer.validated_data.get("nickname"),
-                school_name=input_serializer.validated_data.get("school_name"),
+                nickname=nickname,
+                school_name=school_name,
             )
 
             # 채널 정보 수정
-            channel_name = input_serializer.validated_data.get("channel_name")
-
             if channel_name:
                 channel_service = ChannelService()
                 channel = channel_service.update_channel(user=request.user, channel_name=channel_name)
@@ -142,9 +144,5 @@ class TeacherProfileAPI(APIView):
         input_serializer = self.DeleteInputSerializer(data=request.data)
         input_serializer.is_valid(raise_exception=True)
         user_service = UserService()
-        user_service.soft_delete_user(
-            user=request.user,
-            password=input_serializer.validated_data["password"],
-            user_role=UserRole.TEACHER.value,
-        )
+        user_service.soft_delete_user(user=request.user, user_role=UserRole.TEACHER.value, **input_serializer.validated_data)
         return create_response(status_code=status.HTTP_204_NO_CONTENT)

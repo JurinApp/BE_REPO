@@ -168,8 +168,8 @@ class TeacherChanneManagementAPI(APIView):
         user_channel_selector = UserChannelSelector()
         user_channels = user_channel_selector.get_user_channel_queryset_exec_mine_with_user_by_channel_id_and_nickname_and_user(
             channel_id=channel_id,
-            nickname=filter_serializer.validated_data.get("nickname"),
             user=request.user,
+            **filter_serializer.validated_data,
         )
         user_channel_data = self.OutputSerializer(
             {
@@ -180,8 +180,8 @@ class TeacherChanneManagementAPI(APIView):
         return create_response(user_channel_data, status_code=status.HTTP_200_OK)
 
     class PostInputSerializer(BaseSerializer):
-        user_ids = serializers.ListField(child=serializers.IntegerField())
-        point = serializers.IntegerField()
+        user_ids = serializers.ListField(required=True, child=serializers.IntegerField())
+        point = serializers.IntegerField(required=True, min_value=1)
 
     @swagger_auto_schema(
         tags=["선생님-채널"],
@@ -215,9 +215,8 @@ class TeacherChanneManagementAPI(APIView):
         channel_service = ChannelService()
         user_channels = channel_service.give_point_to_users(
             channel_id=channel_id,
-            user_ids=input_serializer.validated_data["user_ids"],
-            point=input_serializer.validated_data["point"],
             user=request.user,
+            **input_serializer.validated_data,
         )
         user_channel_data = self.OutputSerializer(
             {
@@ -228,7 +227,7 @@ class TeacherChanneManagementAPI(APIView):
         return create_response(user_channel_data, status_code=status.HTTP_200_OK)
 
     class DeleteInputSerializer(BaseSerializer):
-        user_ids = serializers.ListField(child=serializers.IntegerField())
+        user_ids = serializers.ListField(required=True, child=serializers.IntegerField())
 
     @swagger_auto_schema(
         tags=["선생님-채널"],
@@ -253,7 +252,7 @@ class TeacherChanneManagementAPI(APIView):
         channel_service = ChannelService()
         channel_service.leave_users(
             channel_id=channel_id,
-            user_ids=input_serializer.validated_data["user_ids"],
             user=request.user,
+            **input_serializer.validated_data,
         )
         return create_response(status_code=status.HTTP_204_NO_CONTENT)

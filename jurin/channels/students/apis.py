@@ -84,10 +84,7 @@ class StudentChannelAPI(APIView):
         input_serializer = self.InputSerializer(data=request.data)
         input_serializer.is_valid(raise_exception=True)
         channel_service = ChannelService()
-        channel = channel_service.join_channel(
-            user=request.user,
-            entry_code=input_serializer.validated_data["entry_code"],
-        )
+        channel = channel_service.join_channel(user=request.user, **input_serializer.validated_data)
         channel_data = self.OutputSerializer(channel).data
         return create_response(channel_data, status_code=status.HTTP_200_OK)
 

@@ -9,6 +9,7 @@ from django.utils import timezone
 from jurin.channels.models import Channel, UserChannel
 from jurin.channels.selectors.channels import ChannelSelector
 from jurin.channels.selectors.user_channels import UserChannelSelector
+from jurin.channels.tasks import delete_channel_task
 from jurin.common.exception.exceptions import NotFoundException, ValidationException
 from jurin.users.models import User
 
@@ -45,10 +46,6 @@ class ChannelService:
         if self.channel_selector.check_is_exists_channel_by_user(user=user) is True:
             raise ValidationException("You already have a channel.")
 
-        # 유저가 이미 다른 채널에 가입되어 있는지 검증
-        if self.user_channel_selector.check_is_exists_user_channel_by_user(user=user) is True:
-            raise ValidationException("You already joined another channel.")
-
         # 참여 코드 생성 및 중복 검증
         entry_code = self._generate_random_entry_code()
 
@@ -71,9 +68,9 @@ class ChannelService:
         Returns:
             Channel: 채널 객체입니다.
         """
-        # 유저가 이미 채널을 가지고 있는지 검증
-        if self.channel_selector.check_is_exists_channel_by_user(user=user) is True:
-            raise ValidationException("You already have a channel.")
+        # 유저가 이미 채널 참여 되어있는지 확인하는 검증
+        if self.user_channel_selector.check_is_exists_user_channel_by_user(user=user) is True:
+            raise ValidationException("You already joined this channel.")
 
         # 참여 코드 검증
         channel = self.channel_selector.get_channel_by_entry_code(entry_code=entry_code)
@@ -81,19 +78,8 @@ class ChannelService:
         if channel is None:
             raise ValidationException("Entry code is invalid.")
 
-        # 유저가 이미 채널 참여 되어있는지 확인하는 로직 추가
-        if self.user_channel_selector.check_is_exists_user_channel_by_user(user=user) is True:
-            raise ValidationException("You already joined this channel.")
-
-        # 채널이 존재하면 수정, 존재하지 않으면 생성
-        existing_user_channel = channel.user_channel_pivot.filter(user=user).first()
-
-        if existing_user_channel:
-            existing_user_channel.is_deleted = False
-            existing_user_channel.save()
-            # @TODO: 유저 아이템, 유저 주식 is_deleted=False로 변경
-        else:
-            channel.user_channel_pivot.create(user=user)
+        # 유저 채널 참여 처리
+        channel.user_channel_pivot.create(user=user)
 
         return channel
 
@@ -134,16 +120,35 @@ class ChannelService:
         if channel is None:
             raise NotFoundException(detail="Channel does not exist.", code="not_channel")
 
+        # 사용자가 이미 채널을 삭제 대기 중인지 검증
+        if self.channel_selector.count_channels_queryset_by_user(user=user) >= 2:
+            raise ValidationException("You can't delete channel continuously, you can delete a channel 60 minutes after you delete it.")
+
         # 채널 삭제 대기 상태로 변경
         if channel.is_pending_deleted is False and channel.pending_deleted_at is None:
             channel.is_pending_deleted = True
             channel.pending_deleted_at = timezone.now()
             channel.save()
 
-            # 채널 소유 유저 삭제 대기 상태로 변경
-            channel.user_channel_pivot.update(is_deleted=True)
+            # 채널 삭제 테스크를 60분 후에 실행
+            delete_channel_task.apply_async(args=[channel_id], countdown=3600)
 
-        # @TODO: Celery Queue로 대기 삭제인 경우 1시간 후 삭제 처리 되도록 처리
+    @transaction.atomic
+    def delete_channel(self, channel_id: int):
+        """
+        이 함수는 채널 아이디를 받아서 검증 후 채널을 삭제합니다.
+
+        Args:
+            channel_id (int): 채널 아이디입니다.
+        """
+        # 채널이 존재하는지 검증
+        channel = self.channel_selector.get_channel_by_id(channel_id=channel_id)
+
+        if channel is None:
+            raise NotFoundException(detail="Channel does not exist.", code="not_channel")
+
+        # 채널 삭제 처리
+        channel.delete()
 
     @transaction.atomic
     def leave_channel(self, user: User, channel_id: int):
@@ -162,9 +167,7 @@ class ChannelService:
             raise NotFoundException(detail="User channel does not exist.", code="not_user_channel")
 
         # 채널에서 탈퇴 처리
-        if user_channel.is_deleted is False:
-            user_channel.is_deleted = True
-            user_channel.save()
+        user_channel.delete()
 
     @transaction.atomic
     def leave_users(self, user: User, channel_id: int, user_ids: list[int]):
@@ -198,8 +201,8 @@ class ChannelService:
         if user_channels.filter(user=user).exists():
             raise ValidationException("You can't leave owner from channel.")
 
-        # 채널에서 탈퇴 처리 후 포인트 0으로 초기화
-        user_channels.update(is_deleted=True, point=0)
+        # 채널에서 탈퇴 처리
+        user_channels.delete()
 
     @transaction.atomic
     def give_point_to_users(self, channel_id: int, user_ids: list[int], point: int, user: User) -> QuerySet[UserChannel]:

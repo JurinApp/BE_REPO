@@ -81,7 +81,7 @@ services:
     environment:
       - DJANGO_SETTINGS_MODULE=config.django.dev
     volumes:
-            - /etc/localtime:/etc/localtime:ro
+       - /etc/localtime:/etc/localtime:ro
     restart: always
 
   beats:

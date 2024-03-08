@@ -21,6 +21,6 @@ app.conf.beat_schedule = {
     },
     "create_daily_price": {
         "task": "jurin.stocks.tasks.create_daily_price_task",
-        "schedule": crontab(minute="0", hour="0"),
+        "schedule": crontab(minute="55", hour="23"),
     },
 }

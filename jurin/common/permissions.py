@@ -45,24 +45,3 @@ class StudentPermission(permissions.BasePermission):
 
         except Exception:
             return False
-
-
-class ParentPermission(permissions.BasePermission):
-    def has_permission(self, request: Request, view: APIView):
-        """
-        이 함수는 기본적으로 학부모 API에 적용되며, 유저의 권한이 학부모인지 확인합니다.
-
-        Args:
-            request (Request): Request 객체입니다.
-            view (APIView): APIView 객체입니다.
-        Returns:
-            bool: 유저의 권한이 학부모이면 True, 아니면 False를 반환합니다.
-        """
-        try:
-            if request.user.groups.first().id == UserRole.PARENT.value:
-                return True
-
-            return False
-
-        except Exception:
-            return False

@@ -4,11 +4,12 @@ from rest_framework.permissions import AllowAny
 from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from rest_framework_simplejwt.exceptions import InvalidToken, TokenError
+from rest_framework_simplejwt.exceptions import TokenError
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
 from jurin.authentication.services import CustomJWTAuthentication
 from jurin.common.base.serializers import BaseResponseSerializer, BaseSerializer
+from jurin.common.exception.exceptions import InvalidTokenException
 from jurin.common.response import create_response
 from jurin.users.services import UserService
 
@@ -105,7 +106,7 @@ class SignInAPI(TokenObtainPairView):
             serializer.is_valid(raise_exception=True)
 
         except TokenError as e:
-            raise InvalidToken(e.args[0])
+            raise InvalidTokenException(e.args[0])
 
         token_data = self.OutputSerializer(
             {
@@ -147,7 +148,7 @@ class JWTRefreshAPI(TokenRefreshView):
         try:
             serializer.is_valid(raise_exception=True)
         except TokenError as e:
-            raise InvalidToken(e.args[0])
+            raise InvalidTokenException(e.args[0])
 
         token_data = self.OutputSerializer({"access_token": serializer.validated_data["access"]}).data
         return create_response(token_data, status_code=status.HTTP_200_OK)

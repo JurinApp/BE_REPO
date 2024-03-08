@@ -12,7 +12,6 @@ class UserTradeInfoSelector:
     def get_recent_user_trade_info_queryset_by_stock_id_and_trade_type(self, stock_id: int, trade_type: int) -> QuerySet[UserTradeInfo]:
         """
         이 함수는 주식 종목 아이디와 거래 유형을 받아 최근 거래 정보를 조회합니다.
-        거래 정보가 삭제되지 않은 것만 조회합니다.
 
         Args:
             stock_id (int): 주식 종목 아이디
@@ -23,7 +22,6 @@ class UserTradeInfoSelector:
         return UserTradeInfo.objects.filter(
             stock_id=stock_id,
             trade_type=trade_type,
-            is_deleted=False,
         ).order_by("-trade_date")
 
     def get_user_trade_info_queryset_with_stock_by_trade_date_and_channel_id_and_trade_type(
@@ -34,8 +32,6 @@ class UserTradeInfoSelector:
     ) -> QuerySet[UserTradeInfo]:
         """
         이 함수는 거래 일자와 채널 아이디, 거래 유형을 받아 거래 정보를 조회합니다.
-        거래 정보가 삭제되지 않은 것,
-        주식 종목이 삭제되지 않은 것만 조회합니다.
 
         Args:
             trade_date (Union[str, timezone.datetime]): 거래 일자
@@ -45,7 +41,7 @@ class UserTradeInfoSelector:
         """
         user_trade_info_qs = Q()
 
-        stock_qs = Q(stock__is_deleted=False) & Q(stock__channel_id=channel_id)
+        stock_qs = Q(stock__channel_id=channel_id)
 
         if trade_type is not None:
             user_trade_info_qs &= Q(trade_type=trade_type)
@@ -60,11 +56,10 @@ class UserTradeInfoSelector:
         )
 
     def get_user_trade_info_queryset_with_stock_by_trade_date_and_stock_id_and_user(
-        self, trade_date__range: list[Union[str, timezone.datetime]], stock_id: int, user: User
+        self, trade_date_range: list[Union[str, timezone.datetime]], stock_id: int, user: User
     ) -> QuerySet[UserTradeInfo]:
         """
         이 함수는 거래 일자와 주식 종목 아이디, 사용자를 받아 거래 정보를 조회합니다.
-        거래 정보가 삭제되지 않은 것만 조회합니다.
 
         Args:
             trade_date (Union[str, timezone.datetime]): 거래 일자
@@ -74,8 +69,24 @@ class UserTradeInfoSelector:
             QuerySet[Stock]: 주식 종목 쿼리셋
         """
         return UserTradeInfo.objects.select_related("stock").filter(
-            trade_date__range=trade_date__range,
+            trade_date__range=trade_date_range,
             stock_id=stock_id,
             user=user,
-            is_deleted=False,
+        )
+
+    def get_user_trade_info_queryset_by_trade_date_and_stock_id(
+        self, trade_date: timezone.datetime, stock_id: int
+    ) -> QuerySet[UserTradeInfo]:
+        """
+        이 함수는 거래 일자와 주식 종목 아이디를 받아 거래 정보를 조회합니다.
+
+        Args:
+            trade_date (Union[str, timezone.datetime]): 거래 일자
+            user (User): 사용자
+        Returns:
+            QuerySet[Stock]: 주식 종목 쿼리셋
+        """
+        return UserTradeInfo.objects.filter(
+            trade_date=trade_date,
+            stock_id=stock_id,
         )

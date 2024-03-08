@@ -1,14 +1,17 @@
 from django.db import transaction
-from django.db.models import F
+from django.db.models import F, Sum
 from django.utils import timezone
 
+from config.django.base import logger
 from jurin.channels.selectors.channels import ChannelSelector
 from jurin.channels.selectors.user_channels import UserChannelSelector
 from jurin.common.exception.exceptions import NotFoundException, ValidationException
 from jurin.stocks.enums import TradeType
-from jurin.stocks.models import Stock, UserStock, UserTradeInfo
+from jurin.stocks.models import DailyPrice, Stock, UserStock, UserTradeInfo
 from jurin.stocks.selectors.stocks import StockSelector
 from jurin.stocks.selectors.user_stocks import UserStockSelector
+from jurin.stocks.selectors.user_trade_infos import UserTradeInfoSelector
+from jurin.stocks.tasks import updatae_stock_purchase_price_task
 from jurin.users.models import User
 
 
@@ -18,6 +21,7 @@ class StockService:
         self.stock_selector = StockSelector()
         self.user_stock_selector = UserStockSelector()
         self.user_channel_selector = UserChannelSelector()
+        self.user_trade_info_selector = UserTradeInfoSelector()
 
     @transaction.atomic
     def create_stock(
@@ -104,6 +108,10 @@ class StockService:
         if channel.market_opening_at <= timezone.now().time() <= channel.market_closing_at:
             raise ValidationException("You cannot register stock during market hours.")
 
+        # 시장 오픈 시간 5분전 예외 처리
+        if (timezone.now() - timezone.timedelta(seconds=300)).time() <= channel.market_opening_at:
+            raise ValidationException("You cannot register stock 5 minutes before the market opens.")
+
         # 주식 종목이 존재하는지 확인
         stock = self.stock_selector.get_stock_by_id_and_channel_id(stock_id=stock_id, channel_id=channel_id)
 
@@ -117,9 +125,19 @@ class StockService:
         stock.content = content
 
         if stock.purchase_price != purchase_price:
+            # 다음 날 주식 매수가 업데이트
             stock.next_day_purchase_price = purchase_price
-            # @TODO: 큐에 올라갈 대상들 각 채널의 시장 오픈 시간에 맞추기 purchase_price는 prev_day_purchase_price로 업데이트
-            # next_day_purchase_price는 purchase_price로 업데이트
+
+            # 다음 날 주식 매수가 업데이트 시간 계산
+            tomarrow = timezone.now().date() + timezone.timedelta(days=1)
+            market_opening_at = timezone.datetime.combine(tomarrow, channel.market_opening_at)
+            delay = ((market_opening_at + timezone.timedelta(seconds=300)) - timezone.now()).seconds
+
+            # 주식 매수가 작업 예약
+            updatae_stock_purchase_price_task.apply_async(
+                args=[stock_id, channel_id],
+                countdown=delay,
+            )
 
         stock.save()
         return stock
@@ -151,9 +169,7 @@ class StockService:
             raise NotFoundException(detail="Stock does not exist.", code="not_stock")
 
         # 주식 종목 삭제
-        if stock.is_deleted is False:
-            stock.is_deleted = True
-            stock.save()
+        stock.delete()
 
     @transaction.atomic
     def delete_stocks(self, stock_ids: list[int], user: User, channel_id: int):
@@ -182,7 +198,7 @@ class StockService:
             raise NotFoundException(detail="Stock does not exist.", code="not_stock")
 
         # 주식 종목들 삭제
-        stocks.filter(is_deleted=False).update(is_deleted=True)
+        stocks.delete()
 
     @transaction.atomic
     def buy_stock(self, stock_id: int, user: User, channel_id: int, amount: int) -> tuple[int, int]:
@@ -198,14 +214,14 @@ class StockService:
             tuple[int, int]: 유저 포인트, 유저 주식 종목 수량
         """
         # 유저 채널이 존재하는지 검증
-        user_channel = self.user_channel_selector.get_non_pending_deleted_user_channel_by_channel_id_and_user(
-            user=user, channel_id=channel_id
-        )
+        user_channel = self.user_channel_selector.get_user_channel_by_channel_id_and_user_for_student(user=user, channel_id=channel_id)
 
         if user_channel is None:
             raise NotFoundException(detail="User channel does not exist.", code="not_user_channel")
 
-        # @TODO: 시장 오픈 시간 및 마감 시간 검증
+        # 시장 오픈 시간 및 마감 시간 검증
+        if user_channel.channel.market_opening_at > timezone.now().time() or user_channel.channel.market_closing_at < timezone.now().time():
+            raise ValidationException("You cannot trade stocks outside of market hours.")
 
         # 주식 종목이 존재하는지 검증
         stock = self.stock_selector.get_stock_by_id_and_channel_id(
@@ -268,14 +284,14 @@ class StockService:
             tuple[int, int]: 유저 포인트, 유저 주식 종목 수량
         """
         # 유저 채널이 존재하는지 검증
-        user_channel = self.user_channel_selector.get_non_pending_deleted_user_channel_by_channel_id_and_user(
-            user=user, channel_id=channel_id
-        )
+        user_channel = self.user_channel_selector.get_user_channel_by_channel_id_and_user_for_student(user=user, channel_id=channel_id)
 
         if user_channel is None:
             raise NotFoundException(detail="User channel does not exist.", code="not_user_channel")
 
-        # @TODO: 시장 오픈 시간 및 마감 시간 검증
+        # 시장 오픈 시간 및 마감 시간 검증
+        if user_channel.channel.market_opening_at > timezone.now().time() or user_channel.channel.market_closing_at < timezone.now().time():
+            raise ValidationException("You cannot trade stocks outside of market hours.")
 
         # 주식 종목이 존재하는지 검증
         stock = self.stock_selector.get_stock_by_id_and_channel_id(
@@ -320,3 +336,67 @@ class StockService:
             price=stock.purchase_price,
         )
         return user_channel.point, user_stock.total_stock_amount
+
+    @transaction.atomic
+    def update_stock_purchase_price(self, stock_id: int, channel_id: int):
+        """
+        이 함수는 주식 종목 아이디와 채널 아이디를 받아 검증 후 주식 매수가를 업데이트합니다.
+
+        Args:
+            stock_id (int): 주식 고유 아이디
+            channel_id (int): 채널 고유 아이디
+        """
+        # 채널이 존재하는지 확인
+        channel = self.channel_selector.get_channel_by_id(channel_id=channel_id)
+
+        if channel is None:
+            raise NotFoundException(detail="Channel does not exist.", code="not_channel")
+
+        # 주식 종목이 존재하는지 확인
+        stock = self.stock_selector.get_stock_by_id_and_channel_id(stock_id=stock_id, channel_id=channel_id)
+
+        if stock is None:
+            raise NotFoundException(detail="Stock does not exist.", code="not_stock")
+
+        # 주식 매수가 업데이트
+        stock.prev_day_purchase_price = stock.purchase_price
+        stock.purchase_price = stock.next_day_purchase_price
+        stock.save()
+
+    @transaction.atomic
+    def create_daily_price(self):
+        """
+        이 함수는 모든 채널의 주식 종목들의 일별 시세를 생성합니다.
+        """
+        today = timezone.now().date()
+
+        channels_with_stock = self.channel_selector.get_channel_queryset_with_stock()
+
+        # 모든 채널의 주식 종목들의 일별 시세 생성
+        for channel in channels_with_stock:
+            stocks = channel.stocks.all()
+
+            for stock in stocks:
+                try:
+                    trade_infos = self.user_trade_info_selector.get_user_trade_info_queryset_by_trade_date_and_stock_id(
+                        trade_date=today,
+                        stock_id=stock.id,
+                    ).aggregate(volume=Sum("amount"))
+
+                    if trade_infos["volume"] is None:
+                        trade_infos["volume"] = 0
+
+                    volume = trade_infos["volume"]
+                    transaction_amount = stock.purchase_price * volume
+
+                    with transaction.atomic():
+                        DailyPrice.objects.create(
+                            trade_date=today,
+                            price=stock.purchase_price,
+                            volume=volume,
+                            transaction_amount=transaction_amount,
+                            stock=stock,
+                        )
+                except Exception as e:
+                    logger.warning(e)
+                    continue

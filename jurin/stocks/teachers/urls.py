@@ -7,7 +7,7 @@ from jurin.stocks.teachers.apis import (
 )
 
 urlpatterns = [
-    path("", TeacherStockListAPI.as_view(), name="teacher-stock-list"),
-    path("/trades/today", TeacherStockTradeTodayListAPI.as_view(), name="teacher-stock-trade-today-list"),
-    path("/<int:stock_id>", TeacherStockDetailAPI.as_view(), name="teacher-stock-detail"),
+    path("", TeacherStockListAPI.as_view(), name="teacher_stock_list"),
+    path("/trades/today", TeacherStockTradeTodayListAPI.as_view(), name="teacher_stock_trade_today_list"),
+    path("/<int:stock_id>", TeacherStockDetailAPI.as_view(), name="teacher_stock_detail"),
 ]

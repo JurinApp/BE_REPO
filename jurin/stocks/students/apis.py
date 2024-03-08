@@ -77,9 +77,7 @@ class StudentStockListAPI(APIView):
 
         # 유저 채널이 존재하는지 검증
         user_channel_selector = UserChannelSelector()
-        user_channel = user_channel_selector.get_non_pending_deleted_user_channel_by_channel_id_and_user(
-            user=request.user, channel_id=channel_id
-        )
+        user_channel = user_channel_selector.get_user_channel_by_channel_id_and_user_for_student(user=request.user, channel_id=channel_id)
 
         if user_channel is None:
             raise NotFoundException(detail="User channel does not exist.", code="not_user_channel")
@@ -168,18 +166,18 @@ class StudentStockTradeTodayListAPI(APIView):
 
         # 유저 채널이 존재하는지 검증
         user_channel_selector = UserChannelSelector()
-        user_channel = user_channel_selector.get_non_pending_deleted_user_channel_by_channel_id_and_user(
-            user=request.user, channel_id=channel_id
-        )
+        user_channel = user_channel_selector.get_user_channel_by_channel_id_and_user_for_student(user=request.user, channel_id=channel_id)
 
         if user_channel is None:
             raise NotFoundException(detail="User channel does not exist.", code="not_user_channel")
+
+        trade_type = filter_serializer.validated_data.get("trade_type")
 
         user_trade_info_selector = UserTradeInfoSelector()
         user_trade_infos = user_trade_info_selector.get_user_trade_info_queryset_with_stock_by_trade_date_and_channel_id_and_trade_type(
             trade_date=timezone.now().date(),
             channel_id=channel_id,
-            trade_type=filter_serializer.validated_data.get("trade_type"),
+            trade_type=trade_type,
         )
         pagination_user_trade_info_data = get_paginated_data(
             pagination_class=self.Pagination,
@@ -248,9 +246,7 @@ class StudentMyStockListAPI(APIView):
 
         # 유저 채널이 존재하는지 검증
         user_channel_selector = UserChannelSelector()
-        user_channel = user_channel_selector.get_non_pending_deleted_user_channel_by_channel_id_and_user(
-            user=request.user, channel_id=channel_id
-        )
+        user_channel = user_channel_selector.get_user_channel_by_channel_id_and_user_for_student(user=request.user, channel_id=channel_id)
 
         if user_channel is None:
             raise NotFoundException(detail="User channel does not exist.", code="not_user_channel")
@@ -307,6 +303,7 @@ class StudentStockDetailAPI(APIView):
         Args:
             channel_id (int): 채널 아이디
             stock_id (int): 주식 종목 아이디
+
         Returns:
             GetOutputSerializer:
                 stock (dict): 주식 종목 정보
@@ -324,9 +321,7 @@ class StudentStockDetailAPI(APIView):
         """
         # 유저 채널이 존재하는지 검증
         user_channel_selector = UserChannelSelector()
-        user_channel = user_channel_selector.get_non_pending_deleted_user_channel_by_channel_id_and_user(
-            user=request.user, channel_id=channel_id
-        )
+        user_channel = user_channel_selector.get_user_channel_by_channel_id_and_user_for_student(user=request.user, channel_id=channel_id)
 
         if user_channel is None:
             raise NotFoundException(detail="User channel does not exist.", code="not_user_channel")
@@ -355,7 +350,7 @@ class StudentStockDetailAPI(APIView):
 
     class PostInputSerializer(BaseSerializer):
         trade_type = serializers.ChoiceField(choices=[TradeType.BUY.value, TradeType.SELL.value], help_text="1: 매수, 2: 매도")
-        amount = serializers.IntegerField()
+        amount = serializers.IntegerField(min_value=1)
 
     class PostOutputSerializer(BaseSerializer):
         point = serializers.IntegerField()
@@ -391,11 +386,17 @@ class StudentStockDetailAPI(APIView):
         trade_type = input_serializer.validated_data.get("trade_type")
         if trade_type == TradeType.BUY.value:
             point, total_stock_amount = stock_service.buy_stock(
-                user=request.user, stock_id=stock_id, amount=input_serializer.validated_data.get("amount"), channel_id=channel_id
+                user=request.user,
+                stock_id=stock_id,
+                channel_id=channel_id,
+                **input_serializer.validated_data,
             )
         elif trade_type == TradeType.SELL.value:
             point, total_stock_amount = stock_service.sell_stock(
-                user=request.user, stock_id=stock_id, amount=input_serializer.validated_data.get("amount"), channel_id=channel_id
+                user=request.user,
+                stock_id=stock_id,
+                channel_id=channel_id,
+                **input_serializer.validated_data,
             )
         stock_data = self.PostOutputSerializer(
             {
@@ -443,14 +444,18 @@ class StudentMyStockDetailAPI(APIView):
             stock_id (int): 주식 종목 아이디
         Returns:
             OutputSerializer:
-                point (int): 유저 보유 포인트
-                total_stock_amount (int): 유저 보유 총 주식 수량
+                user (dict): 유저 정보
+                    point (int): 유저 보유 포인트
+                    total_stock_amount (int): 유저 보유 총 주식 수량
+                stock (dict): 주식 종목 정보
+                    id (int): 주식 종목 아이디
+                    name (str): 종목명
+                    purchase_price (int): 매수가
+                    tax (float): 세금
         """
         # 유저 채널이 존재하는지 검증
         user_channel_selector = UserChannelSelector()
-        user_channel = user_channel_selector.get_non_pending_deleted_user_channel_by_channel_id_and_user(
-            user=request.user, channel_id=channel_id
-        )
+        user_channel = user_channel_selector.get_user_channel_by_channel_id_and_user_for_student(user=request.user, channel_id=channel_id)
 
         if user_channel is None:
             raise NotFoundException(detail="User channel does not exist.", code="not_user_channel")
@@ -552,9 +557,7 @@ class StudentMyStockTradeInfoListAPI(APIView):
 
         # 유저 채널이 존재하는지 검증
         user_channel_selector = UserChannelSelector()
-        user_channel = user_channel_selector.get_non_pending_deleted_user_channel_by_channel_id_and_user(
-            user=request.user, channel_id=channel_id
-        )
+        user_channel = user_channel_selector.get_user_channel_by_channel_id_and_user_for_student(user=request.user, channel_id=channel_id)
 
         if user_channel is None:
             raise NotFoundException(detail="User channel does not exist.", code="not_user_channel")
@@ -569,9 +572,12 @@ class StudentMyStockTradeInfoListAPI(APIView):
         if stock is None:
             raise NotFoundException(detail="Stock does not exist.", code="not_stock")
 
+        start_date = filter_serializer.validated_data.get("start_date")
+        end_date = filter_serializer.validated_data.get("end_date")
+
         user_trade_info_selector = UserTradeInfoSelector()
         user_trade_infos = user_trade_info_selector.get_user_trade_info_queryset_with_stock_by_trade_date_and_stock_id_and_user(
-            trade_date__range=[filter_serializer.validated_data.get("start_date"), filter_serializer.validated_data.get("end_date")],
+            trade_date_range=[start_date, end_date],
             stock_id=stock_id,
             user=request.user,
         )
@@ -595,11 +601,19 @@ class StudentStockTradeListAPI(APIView):
     class OutputSerializer(BaseSerializer):
         sell_list = inline_serializer(
             many=True,
-            fields={"trade_date": serializers.DateField(), "amount": serializers.IntegerField(), "price": serializers.IntegerField()},
+            fields={
+                "trade_date": serializers.DateField(),
+                "amount": serializers.IntegerField(),
+                "price": serializers.IntegerField(),
+            },
         )
         buy_list = inline_serializer(
             many=True,
-            fields={"trade_date": serializers.DateField(), "amount": serializers.IntegerField(), "price": serializers.IntegerField()},
+            fields={
+                "trade_date": serializers.DateField(),
+                "amount": serializers.IntegerField(),
+                "price": serializers.IntegerField(),
+            },
         )
 
     @swagger_auto_schema(
@@ -630,9 +644,7 @@ class StudentStockTradeListAPI(APIView):
         """
         # 유저 채널이 존재하는지 검증
         user_channel_selector = UserChannelSelector()
-        user_channel = user_channel_selector.get_non_pending_deleted_user_channel_by_channel_id_and_user(
-            user=request.user, channel_id=channel_id
-        )
+        user_channel = user_channel_selector.get_user_channel_by_channel_id_and_user_for_student(user=request.user, channel_id=channel_id)
 
         if user_channel is None:
             raise NotFoundException(detail="User channel does not exist.", code="not_user_channel")
@@ -657,5 +669,10 @@ class StudentStockTradeListAPI(APIView):
             stock_id=stock_id,
             trade_type=TradeType.BUY.value,
         )
-        user_trade_info_data = self.OutputSerializer({"sell_list": sell_user_trade_infos[:7], "buy_list": buy_user_trade_infos[:7]}).data
+        user_trade_info_data = self.OutputSerializer(
+            {
+                "sell_list": sell_user_trade_infos[:7],
+                "buy_list": buy_user_trade_infos[:7],
+            }
+        ).data
         return create_response(user_trade_info_data, status_code=status.HTTP_200_OK)

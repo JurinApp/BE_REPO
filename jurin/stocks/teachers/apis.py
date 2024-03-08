@@ -140,12 +140,8 @@ class TeacherStockListAPI(APIView):
         stock_service = StockService()
         stock = stock_service.create_stock(
             channel_id=channel_id,
-            name=input_serializer.validated_data["name"],
-            purchase_price=input_serializer.validated_data["purchase_price"],
-            tax=input_serializer.validated_data["tax"],
-            standard=input_serializer.validated_data["standard"],
-            content=input_serializer.validated_data["content"],
             user=request.user,
+            **input_serializer.validated_data,
         )
         stock_data = self.PostOutputSerializer(stock).data
         return create_response(stock_data, status_code=status.HTTP_201_CREATED)
@@ -176,8 +172,8 @@ class TeacherStockListAPI(APIView):
         stock_service = StockService()
         stock_service.delete_stocks(
             channel_id=channel_id,
-            stock_ids=input_serializer.validated_data["stock_ids"],
             user=request.user,
+            **input_serializer.validated_data,
         )
         return create_response(status_code=status.HTTP_204_NO_CONTENT)
 
@@ -259,11 +255,13 @@ class TeacherStockTradeTodayListAPI(APIView):
         if channel is None:
             raise NotFoundException(detail="Channel does not exist.", code="not_channel")
 
+        trade_type = filter_serializer.validated_data.get("trade_type")
+
         user_trade_info_selector = UserTradeInfoSelector()
         user_trade_infos = user_trade_info_selector.get_user_trade_info_queryset_with_stock_by_trade_date_and_channel_id_and_trade_type(
             trade_date=timezone.now().date(),
             channel_id=channel_id,
-            trade_type=filter_serializer.validated_data.get("trade_type"),
+            trade_type=trade_type,
         )
         pagination_user_trade_info_data = get_paginated_data(
             pagination_class=self.Pagination,
@@ -334,7 +332,7 @@ class TeacherStockDetailAPI(APIView):
 
     class InputSerializer(BaseSerializer):
         name = serializers.CharField(required=True, max_length=32)
-        purchase_price = serializers.IntegerField(required=True, min_value=0)
+        purchase_price = serializers.IntegerField(required=True, min_value=1)
         tax = serializers.FloatField(required=True, max_value=1, min_value=0)
         standard = serializers.CharField(required=True, max_length=32)
         content = serializers.CharField(required=True)
@@ -377,12 +375,8 @@ class TeacherStockDetailAPI(APIView):
         stock = stock_service.update_stock(
             stock_id=stock_id,
             channel_id=channel_id,
-            name=input_serializer.validated_data["name"],
-            purchase_price=input_serializer.validated_data["purchase_price"],
-            tax=input_serializer.validated_data["tax"],
-            standard=input_serializer.validated_data["standard"],
-            content=input_serializer.validated_data["content"],
             user=request.user,
+            **input_serializer.validated_data,
         )
         stock_data = self.OutputSerializer(stock).data
         return create_response(stock_data, status_code=status.HTTP_200_OK)

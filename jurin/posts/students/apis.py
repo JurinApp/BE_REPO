@@ -61,7 +61,7 @@ class StudentPostListAPI(APIView):
 
         # 유저 채널이 존재하는지 검증
         user_channel_selector = UserChannelSelector()
-        user_channel = user_channel_selector.get_non_pending_deleted_user_channel_by_channel_id_and_user(
+        user_channel = user_channel_selector.get_user_channel_by_channel_id_and_user_for_student(
             channel_id=channel_id,
             user=request.user,
         )
@@ -117,7 +117,7 @@ class StudentPostDetailAPI(APIView):
         """
         # 유저 채널이 존재하는지 검증
         user_channel_selector = UserChannelSelector()
-        user_channel = user_channel_selector.get_non_pending_deleted_user_channel_by_channel_id_and_user(
+        user_channel = user_channel_selector.get_user_channel_by_channel_id_and_user_for_student(
             channel_id=channel_id,
             user=request.user,
         )

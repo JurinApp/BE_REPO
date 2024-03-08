@@ -102,9 +102,7 @@ class PostService:
             raise NotFoundException(detail="Post does not exist.", code="not_post")
 
         # 게시글 삭제
-        if post.is_deleted is False:
-            post.is_deleted = True
-            post.save()
+        post.delete()
 
     @transaction.atomic
     def delete_posts(self, user: User, channel_id: int, post_ids: list[int]):
@@ -128,4 +126,4 @@ class PostService:
             raise NotFoundException(detail="Post does not exist.", code="not_post")
 
         # 게시글들 삭제
-        posts.filter(is_deleted=False).update(is_deleted=True)
+        posts.delete()

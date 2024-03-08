@@ -117,17 +117,14 @@ class TeacherPostListAPI(APIView):
         post_service = PostService()
         post = post_service.create_post(
             channel_id=channel_id,
-            main_title=input_serializer.validated_data["main_title"],
-            sub_title=input_serializer.validated_data["sub_title"],
-            date=input_serializer.validated_data["date"],
-            content=input_serializer.validated_data["content"],
             user=request.user,
+            **input_serializer.validated_data,
         )
         post_data = self.OutputSerializer(post).data
         return create_response(post_data, status_code=status.HTTP_201_CREATED)
 
     class DeleteInputSerializer(BaseSerializer):
-        post_ids = serializers.ListField(child=serializers.IntegerField(), required=True)
+        post_ids = serializers.ListField(required=True, child=serializers.IntegerField())
 
     @swagger_auto_schema(
         tags=["선생님-게시글"],
@@ -139,7 +136,7 @@ class TeacherPostListAPI(APIView):
     )
     def delete(self, request: Request, channel_id: int) -> Response:
         """
-        선생님 권한의 유저가 채널의 게시글을 다중 삭제합니다. (소프트 삭제)
+        선생님 권한의 유저가 채널의 게시글을 다중 삭제합니다.
         url: /teachers/api/v1/channels/<int:channel_id>/posts
 
         Args:
@@ -151,9 +148,9 @@ class TeacherPostListAPI(APIView):
         input_serializer.is_valid(raise_exception=True)
         post_service = PostService()
         post_service.delete_posts(
-            post_ids=input_serializer.validated_data["post_ids"],
             channel_id=channel_id,
             user=request.user,
+            **input_serializer.validated_data,
         )
         return create_response(status_code=status.HTTP_204_NO_CONTENT)
 
@@ -250,11 +247,8 @@ class TeacherPostDetailAPI(APIView):
         post = post_service.update_post(
             post_id=post_id,
             channel_id=channel_id,
-            main_title=input_serializer.validated_data["main_title"],
-            sub_title=input_serializer.validated_data["sub_title"],
-            date=input_serializer.validated_data["date"],
-            content=input_serializer.validated_data["content"],
             user=request.user,
+            **input_serializer.validated_data,
         )
         post_data = self.OutputSerializer(post).data
         return create_response(post_data, status_code=status.HTTP_200_OK)
@@ -266,7 +260,7 @@ class TeacherPostDetailAPI(APIView):
     )
     def delete(self, request: Request, channel_id: int, post_id: int) -> Response:
         """
-        선생님 권한의 유저가 채널의 게시글을 삭제합니다. (소프트 삭제)
+        선생님 권한의 유저가 채널의 게시글을 삭제합니다.
         url: /teachers/api/v1/channels/<int:channel_id>/posts/<int:post_id>
 
         Args:

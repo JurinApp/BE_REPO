@@ -21,6 +21,12 @@ class AuthenticationFailedException(BaseAPIException):
     default_code = "authentication_failed"
 
 
+class InvalidTokenException(BaseAPIException):
+    status_code = status.HTTP_401_UNAUTHORIZED
+    default_detail = "Token is invalid or expired"
+    default_code = "token_not_valid"
+
+
 class ValidationException(BaseAPIException):
     status_code = status.HTTP_400_BAD_REQUEST
     default_detail = "Validation failed."
@@ -37,3 +43,9 @@ class PermissionDeniedException(BaseAPIException):
     status_code = status.HTTP_403_FORBIDDEN
     default_detail = "You do not have permission to perform this action."
     default_code = "permission_denied"
+
+
+class TaskFailedException(BaseAPIException):
+    status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
+    default_detail = "Task failed."
+    default_code = "task_failed"

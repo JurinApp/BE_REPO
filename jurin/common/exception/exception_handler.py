@@ -59,8 +59,12 @@ def handle_api_exception(exc: Exception, context: dict) -> Optional[Response]:
     if isinstance(exc, APIException) is False:
         return None
 
-    message = exc.detail
-    status_code = exc.status_code
-    code = message.code
+    message = getattr(exc, "detail")
+    status_code = getattr(exc, "status_code")
+
+    if hasattr(message, "code"):
+        code = getattr(message, "code")
+    else:
+        code = getattr(exc, "default_code")
 
     return create_response(code=code, message=message, status_code=status_code)

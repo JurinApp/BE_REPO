@@ -114,7 +114,7 @@ class TeacherChanneManagementAPI(APIView):
     permission_classes = (TeacherPermission,)
 
     class FilterSerializer(BaseSerializer):
-        nickname = serializers.CharField(required=False, max_length=8)
+        nickname = serializers.CharField(required=False, max_length=8, default=None)
 
     class OutputSerializer(BaseSerializer):
         count = serializers.IntegerField()

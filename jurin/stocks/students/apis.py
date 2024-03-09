@@ -384,19 +384,21 @@ class StudentStockDetailAPI(APIView):
         input_serializer.is_valid(raise_exception=True)
         stock_service = StockService()
         trade_type = input_serializer.validated_data.get("trade_type")
+        amount = input_serializer.validated_data.get("amount")
+
         if trade_type == TradeType.BUY.value:
             point, total_stock_amount = stock_service.buy_stock(
                 user=request.user,
                 stock_id=stock_id,
                 channel_id=channel_id,
-                **input_serializer.validated_data,
+                amount=amount,
             )
         elif trade_type == TradeType.SELL.value:
             point, total_stock_amount = stock_service.sell_stock(
                 user=request.user,
                 stock_id=stock_id,
                 channel_id=channel_id,
-                **input_serializer.validated_data,
+                amount=amount,
             )
         stock_data = self.PostOutputSerializer(
             {

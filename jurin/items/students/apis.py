@@ -159,6 +159,7 @@ class StudentMyItemListAPI(APIView):
         image_url = serializers.URLField(source="item.image_url")
         price = serializers.IntegerField(source="item.price")
         remaining_amount = serializers.IntegerField(source="amount")
+        used_amount = serializers.IntegerField()
         is_used = serializers.BooleanField()
 
     @swagger_auto_schema(
@@ -201,11 +202,13 @@ class StudentMyItemListAPI(APIView):
 
         is_used = filter_serializer.validated_data.get("is_used")
 
+        # 유저 아이템 목록 조회
         user_item_selector = UserItemSelector()
-        user_item = user_item_selector.get_user_item_queryset_with_item_desc_is_used_by_user_and_is_used(
+        user_item = user_item_selector.get_user_item_queryset_with_item_by_user_and_is_used_order_by_is_used_desc(
             user=request.user,
             is_used=is_used,
         )
+
         pagination_items_data = get_paginated_data(
             pagination_class=self.Pagination,
             serializer_class=self.OutputSerializer,

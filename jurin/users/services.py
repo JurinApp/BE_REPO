@@ -1,6 +1,5 @@
 from typing import Optional, Tuple
 
-from django.db import transaction
 from django.utils import timezone
 
 from jurin.channels.selectors.channels import ChannelSelector
@@ -17,7 +16,6 @@ class UserService:
         self.user_selector = UserSelector()
         self.channel_selector = ChannelSelector()
 
-    @transaction.atomic
     def create_user(
         self,
         username: str,
@@ -89,7 +87,6 @@ class UserService:
 
         return True, validate_type
 
-    @transaction.atomic
     def update_user(self, nickname: str, user: User, school_name: Optional[str]) -> User:
         """
         이 함수는 유저 정보를 수정합니다.
@@ -106,7 +103,6 @@ class UserService:
         user.save()
         return user
 
-    @transaction.atomic
     def restore_user(self, user: User, user_role: int):
         """
         이 함수는 회원 탈퇴한 유저를 복구합니다.
@@ -134,7 +130,6 @@ class UserService:
                 # 큐에 올라간 채널 데이터 삭제
                 drop_celery_task.apply_async(args=["delete_channel_task", [channel.id]])
 
-    @transaction.atomic
     def soft_delete_user(self, password: str, user: User, user_role: int):
         """
         이 함수는 비밀번호 검증 후 회원 탈퇴 처리를 합니다.
@@ -167,7 +162,6 @@ class UserService:
                 # 채널 삭제 테스크를 60분 후에 실행
                 delete_channel_task.apply_async(args=[channel.id], countdown=3600)
 
-    @transaction.atomic
     def hard_bulk_delete_users(self):
         """
         이 함수는 7일 이상 탈퇴한 유저들을 삭제합니다.

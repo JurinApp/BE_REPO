@@ -118,8 +118,8 @@ class TeacherProfileAPI(APIView):
                 channel_selector = ChannelSelector()
                 channel = channel_selector.get_channel_by_user(user=request.user)
 
-            data = self.OutputSerializer({"user": user, "channel": channel}).data
-        return create_response(data, status_code=status.HTTP_200_OK)
+        user_data = self.OutputSerializer({"user": user, "channel": channel}).data
+        return create_response(user_data, status_code=status.HTTP_200_OK)
 
     class DeleteInputSerializer(BaseSerializer):
         password = serializers.CharField(required=True, max_length=128)

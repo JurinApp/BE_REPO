@@ -1,7 +1,6 @@
 import random
 import string
 
-from django.db import transaction
 from django.db.models import F
 from django.db.models.query import QuerySet
 from django.utils import timezone
@@ -31,7 +30,6 @@ class ChannelService:
         random_entry_code = "".join(random.choice(characters) for _ in range(6))
         return random_entry_code
 
-    @transaction.atomic
     def create_channel(self, user: User, channel_name: str) -> Channel:
         """
         이 함수는 채널 이름과 유저를 받아서 검증 후 참여 코드를 생성 후 채널을 생성합니다.
@@ -57,7 +55,6 @@ class ChannelService:
         channel.user_channel_pivot.create(user=user)
         return channel
 
-    @transaction.atomic
     def join_channel(self, user: User, entry_code: str) -> Channel:
         """
         이 함수는 유저와 참여 코드를 받아서 검증 후 채널에 가입시킵니다.
@@ -83,7 +80,6 @@ class ChannelService:
 
         return channel
 
-    @transaction.atomic
     def update_channel(self, user: User, channel_name: str) -> Channel:
         """
         이 함수는 유저와 채널 이름을 받아서 채널 이름을 수정합니다.
@@ -105,7 +101,6 @@ class ChannelService:
         channel.save()
         return channel
 
-    @transaction.atomic
     def pending_delete_channel(self, user: User, channel_id: int):
         """
         이 함수는 유저와 채널 아이디를 받아서 검증 후 채널을 삭제 대기 상태로 변경합니다.
@@ -133,7 +128,6 @@ class ChannelService:
             # 채널 삭제 테스크를 60분 후에 실행
             delete_channel_task.apply_async(args=[channel_id], countdown=3600)
 
-    @transaction.atomic
     def delete_channel(self, channel_id: int):
         """
         이 함수는 채널 아이디를 받아서 검증 후 채널을 삭제합니다.
@@ -150,7 +144,6 @@ class ChannelService:
         # 채널 삭제 처리
         channel.delete()
 
-    @transaction.atomic
     def leave_channel(self, user: User, channel_id: int):
         """
         이 함수는 유저와 채널 아이디를 받아서 검증 후 채널에서 탈퇴시킵니다.
@@ -169,7 +162,6 @@ class ChannelService:
         # 채널에서 탈퇴 처리
         user_channel.delete()
 
-    @transaction.atomic
     def leave_users(self, user: User, channel_id: int, user_ids: list[int]):
         """
         이 함수는 유저와 채널 아이디와 유저 아이디 리스트를 받아 검증 후
@@ -204,7 +196,6 @@ class ChannelService:
         # 채널에서 탈퇴 처리
         user_channels.delete()
 
-    @transaction.atomic
     def give_point_to_users(self, channel_id: int, user_ids: list[int], point: int, user: User) -> QuerySet[UserChannel]:
         """
         이 함수는 채널 아이디와 유저 아아디 리스트와 유저를 검증 후 유저 채널에 포인트를 지급합니다.

@@ -23,7 +23,6 @@ class StockService:
         self.user_channel_selector = UserChannelSelector()
         self.user_trade_info_selector = UserTradeInfoSelector()
 
-    @transaction.atomic
     def create_stock(
         self,
         channel_id: int,
@@ -71,7 +70,6 @@ class StockService:
         )
         return stock
 
-    @transaction.atomic
     def update_stock(
         self,
         stock_id: int,
@@ -118,31 +116,31 @@ class StockService:
         if stock is None:
             raise NotFoundException(detail="Stock does not exist.", code="not_stock")
 
-        # 주식 종목 수정
-        stock.name = name
-        stock.tax = tax
-        stock.standard = standard
-        stock.content = content
+        with transaction.atomic():
+            # 주식 종목 수정
+            stock.name = name
+            stock.tax = tax
+            stock.standard = standard
+            stock.content = content
 
-        if stock.purchase_price != purchase_price:
-            # 다음 날 주식 매수가 업데이트
-            stock.next_day_purchase_price = purchase_price
+            if stock.purchase_price != purchase_price:
+                # 다음 날 주식 매수가 업데이트
+                stock.next_day_purchase_price = purchase_price
 
-            # 다음 날 주식 매수가 업데이트 시간 계산
-            tomarrow = timezone.now().date() + timezone.timedelta(days=1)
-            market_opening_at = timezone.datetime.combine(tomarrow, channel.market_opening_at)
-            delay = ((market_opening_at + timezone.timedelta(seconds=300)) - timezone.now()).seconds
+                # 다음 날 주식 매수가 업데이트 시간 계산
+                tomarrow = timezone.now().date() + timezone.timedelta(days=1)
+                market_opening_at = timezone.datetime.combine(tomarrow, channel.market_opening_at)
+                delay = ((market_opening_at + timezone.timedelta(seconds=300)) - timezone.now()).seconds
 
-            # 주식 매수가 작업 예약
-            updatae_stock_purchase_price_task.apply_async(
-                args=[stock_id, channel_id],
-                countdown=delay,
-            )
+                # 주식 매수가 작업 예약
+                updatae_stock_purchase_price_task.apply_async(
+                    args=[stock_id, channel_id],
+                    countdown=delay,
+                )
 
-        stock.save()
+            stock.save()
         return stock
 
-    @transaction.atomic
     def delete_stock(self, stock_id: int, user: User, channel_id: int):
         """
         이 함수는 주식 종목 아이디를 받아 검증 후 주식 종목을 삭제합니다.
@@ -171,7 +169,6 @@ class StockService:
         # 주식 종목 삭제
         stock.delete()
 
-    @transaction.atomic
     def delete_stocks(self, stock_ids: list[int], user: User, channel_id: int):
         """
         이 함수는 주식 종목 아이디 리스트를 받아 주식 종목들을 삭제합니다.
@@ -200,7 +197,6 @@ class StockService:
         # 주식 종목들 삭제
         stocks.delete()
 
-    @transaction.atomic
     def buy_stock(self, stock_id: int, user: User, channel_id: int, amount: int) -> tuple[int, int]:
         """
         이 함수는 주식 종목 아이디와 유저 객체와 채널 아이디와 수량을 받아 검증 후 주식을 매수합니다.
@@ -236,41 +232,41 @@ class StockService:
         if user_channel.point < stock.purchase_price * amount:
             raise ValidationException("User does not have enough points.")
 
-        # 유저 포인트 차감
-        total_purchase_price = stock.purchase_price * amount
-        user_channel.point = F("point") - total_purchase_price
-        user_channel.save()
-        user_channel.refresh_from_db()
+        with transaction.atomic():
+            # 유저 포인트 차감
+            total_purchase_price = stock.purchase_price * amount
+            user_channel.point = F("point") - total_purchase_price
+            user_channel.save()
+            user_channel.refresh_from_db()
 
-        # 유저 주식 종목이 있으면 수량 증가, 없으면 생성
-        user_stock = self.user_stock_selector.get_user_stock_by_user_and_stock_id(
-            user=user,
-            stock_id=stock_id,
-        )
-
-        if user_stock is not None:
-            user_stock.total_stock_amount = F("total_stock_amount") + amount
-            user_stock.save()
-            user_stock.refresh_from_db()
-        else:
-            user_stock = UserStock.objects.create(
+            # 유저 주식 종목이 있으면 수량 증가, 없으면 생성
+            user_stock = self.user_stock_selector.get_user_stock_by_user_and_stock_id(
                 user=user,
-                stock=stock,
-                total_stock_amount=amount,
+                stock_id=stock_id,
             )
 
-        # 주식 거래 내역 생성
-        UserTradeInfo.objects.create(
-            user=user,
-            stock=stock,
-            trade_date=timezone.now().date(),
-            trade_type=TradeType.BUY.value,
-            amount=amount,
-            price=stock.purchase_price,
-        )
+            if user_stock is not None:
+                user_stock.total_stock_amount = F("total_stock_amount") + amount
+                user_stock.save()
+                user_stock.refresh_from_db()
+            else:
+                user_stock = UserStock.objects.create(
+                    user=user,
+                    stock=stock,
+                    total_stock_amount=amount,
+                )
+
+            # 주식 거래 내역 생성
+            UserTradeInfo.objects.create(
+                user=user,
+                stock=stock,
+                trade_date=timezone.now().date(),
+                trade_type=TradeType.BUY.value,
+                amount=amount,
+                price=stock.purchase_price,
+            )
         return user_channel.point, user_stock.total_stock_amount
 
-    @transaction.atomic
     def sell_stock(self, stock_id: int, user: User, channel_id: int, amount: int) -> tuple[int, int]:
         """
         이 함수는 주식 종목 아이디와 유저 객체와 채널 아이디와 수량을 받아 검증 후 주식을 매도합니다.
@@ -302,42 +298,42 @@ class StockService:
         if stock is None:
             raise NotFoundException(detail="Stock does not exist.", code="not_stock")
 
-        # 유저 포인트 증가 (세금 계산)
-        total_purchase_price = stock.purchase_price * amount
-        total_tax_price = total_purchase_price * (stock.tax / 100)
-        total_price = total_purchase_price - total_tax_price
-        user_channel.point = F("point") + total_price
-        user_channel.save()
-        user_channel.refresh_from_db()
+        with transaction.atomic():
+            # 유저 포인트 증가 (세금 계산)
+            total_purchase_price = stock.purchase_price * amount
+            total_tax_price = total_purchase_price * (stock.tax / 100)
+            total_price = total_purchase_price - total_tax_price
+            user_channel.point = F("point") + total_price
+            user_channel.save()
+            user_channel.refresh_from_db()
 
-        # 유저 주식 종목이 있으면 수량 감소, 없거나 수량이 부족하면 에러
-        user_stock = self.user_stock_selector.get_user_stock_by_user_and_stock_id(
-            user=user,
-            stock_id=stock_id,
-        )
+            # 유저 주식 종목이 있으면 수량 감소, 없거나 수량이 부족하면 에러
+            user_stock = self.user_stock_selector.get_user_stock_by_user_and_stock_id(
+                user=user,
+                stock_id=stock_id,
+            )
 
-        if user_stock is None:
-            raise NotFoundException(detail="User stock does not exist.", code="not_user_stock")
+            if user_stock is None:
+                raise NotFoundException(detail="User stock does not exist.", code="not_user_stock")
 
-        if user_stock.total_stock_amount < amount:
-            raise ValidationException("User does not have enough stocks.")
+            if user_stock.total_stock_amount < amount:
+                raise ValidationException("User does not have enough stocks.")
 
-        user_stock.total_stock_amount = F("total_stock_amount") - amount
-        user_stock.save()
-        user_stock.refresh_from_db()
+            user_stock.total_stock_amount = F("total_stock_amount") - amount
+            user_stock.save()
+            user_stock.refresh_from_db()
 
-        # 주식 거래 내역 생성
-        UserTradeInfo.objects.create(
-            user=user,
-            stock=stock,
-            trade_date=timezone.now().date(),
-            trade_type=TradeType.SELL.value,
-            amount=amount,
-            price=stock.purchase_price,
-        )
+            # 주식 거래 내역 생성
+            UserTradeInfo.objects.create(
+                user=user,
+                stock=stock,
+                trade_date=timezone.now().date(),
+                trade_type=TradeType.SELL.value,
+                amount=amount,
+                price=stock.purchase_price,
+            )
         return user_channel.point, user_stock.total_stock_amount
 
-    @transaction.atomic
     def update_stock_purchase_price(self, stock_id: int, channel_id: int):
         """
         이 함수는 주식 종목 아이디와 채널 아이디를 받아 검증 후 주식 매수가를 업데이트합니다.
@@ -363,7 +359,6 @@ class StockService:
         stock.purchase_price = stock.next_day_purchase_price
         stock.save()
 
-    @transaction.atomic
     def create_daily_price(self):
         """
         이 함수는 모든 채널의 주식 종목들의 일별 시세를 생성합니다.
@@ -372,24 +367,24 @@ class StockService:
 
         channels_with_stock = self.channel_selector.get_channel_queryset_with_stock()
 
-        # 모든 채널의 주식 종목들의 일별 시세 생성
-        for channel in channels_with_stock:
-            stocks = channel.stocks.all()
+        with transaction.atomic():
+            # 모든 채널의 주식 종목들의 일별 시세 생성
+            for channel in channels_with_stock:
+                stocks = channel.stocks.all()
 
-            for stock in stocks:
-                try:
-                    trade_infos = self.user_trade_info_selector.get_user_trade_info_queryset_by_trade_date_and_stock_id(
-                        trade_date=today,
-                        stock_id=stock.id,
-                    ).aggregate(volume=Sum("amount"))
+                for stock in stocks:
+                    try:
+                        trade_infos = self.user_trade_info_selector.get_user_trade_info_queryset_by_trade_date_and_stock_id(
+                            trade_date=today,
+                            stock_id=stock.id,
+                        ).aggregate(volume=Sum("amount"))
 
-                    if trade_infos["volume"] is None:
-                        trade_infos["volume"] = 0
+                        if trade_infos["volume"] is None:
+                            trade_infos["volume"] = 0
 
-                    volume = trade_infos["volume"]
-                    transaction_amount = stock.purchase_price * volume
+                        volume = trade_infos["volume"]
+                        transaction_amount = stock.purchase_price * volume
 
-                    with transaction.atomic():
                         DailyPrice.objects.create(
                             trade_date=today,
                             price=stock.purchase_price,
@@ -397,6 +392,6 @@ class StockService:
                             transaction_amount=transaction_amount,
                             stock=stock,
                         )
-                except Exception as e:
-                    logger.warning(e)
-                    continue
+                    except Exception as e:
+                        logger.warning(e)
+                        continue

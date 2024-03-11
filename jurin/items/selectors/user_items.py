@@ -26,7 +26,9 @@ class UserItemSelector:
         except UserItem.DoesNotExist:
             return None
 
-    def get_user_item_queryset_with_item_desc_is_used_by_user_and_is_used(self, user: User, is_used: Optional[bool]) -> QuerySet:
+    def get_user_item_queryset_with_item_by_user_and_is_used_order_by_is_used_desc(
+        self, user: User, is_used: Optional[bool]
+    ) -> QuerySet[UserItem]:
         """
         이 함수는 유저와 사용 여부로 아이템과 사용 여부 내림차순으로 아이템과 유저 아이템을 조회합니다.
 

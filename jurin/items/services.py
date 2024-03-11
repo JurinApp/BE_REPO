@@ -19,7 +19,6 @@ class ItemService:
         self.user_channel_selector = UserChannelSelector()
         self.user_item_selector = UserItemSelector()
 
-    @transaction.atomic
     def create_item(self, channel_id: int, title: str, image_url: str, amount: int, price: int, content: str, user: User) -> Item:
         """
         이 함수는 채널 아이디와 유저를 받아 검증 후 아이템을 생성합니다.
@@ -57,7 +56,6 @@ class ItemService:
 
         return item
 
-    @transaction.atomic
     def update_item(
         self, channel_id: int, item_id: int, title: str, image_url: str, amount: int, price: int, content: str, user: User
     ) -> Item:
@@ -102,7 +100,6 @@ class ItemService:
 
         return item
 
-    @transaction.atomic
     def delete_item(self, channel_id: int, item_id: int, user: User):
         """
         이 함수는 채널 아이디와 아이템 아이디와 유저를 받아 검증 후 아이템을 삭제합니다.
@@ -131,7 +128,6 @@ class ItemService:
         # 아이템 삭제
         item.delete()
 
-    @transaction.atomic
     def delete_items(self, channel_id: int, item_ids: list[int], user: User):
         """
         이 함수는 채널 아이디와 아이템 아이디들과 유저를 받아 검증 후 아이템들을 삭제합니다.
@@ -160,7 +156,6 @@ class ItemService:
         # 아이템들 삭제
         items.delete()
 
-    @transaction.atomic
     def buy_item(self, channel_id: int, item_id: int, price: int, amount: int, user: User) -> Item:
         """
         이 함수는 채널 아이디와 아이템 아이디와 가격과 수량과 유저를 받아 검증 후 아이템을 구매합니다.
@@ -200,37 +195,37 @@ class ItemService:
         if user_channel.point < total_price:
             raise ValidationException("Insufficient points.")
 
-        # 유저 포인트 차감 및 아이템 수량 차감
-        UserChannel.objects.filter(id=user_channel.id).update(point=F("point") - total_price)
-        Item.objects.filter(id=item.id).update(amount=F("amount") - amount)
+        with transaction.atomic():
+            # 유저 포인트 차감 및 아이템 수량 차감
+            UserChannel.objects.filter(id=user_channel.id).update(point=F("point") - total_price)
+            Item.objects.select_for_update().filter(id=item.id).update(amount=F("amount") - amount)
 
-        # 유저 아이템이 존재하면 수량 수정, 없으면 생성
-        user_item = self.user_item_selector.get_user_item_by_item_id_and_user(item_id=item.id, user=user)
+            # 유저 아이템이 존재하면 수량 수정, 없으면 생성
+            user_item = self.user_item_selector.get_user_item_by_item_id_and_user(item_id=item.id, user=user)
 
-        if user_item is not None:
-            UserItem.objects.filter(id=user_item.id).update(amount=F("amount") + amount)
+            if user_item is not None:
+                UserItem.objects.filter(id=user_item.id).update(amount=F("amount") + amount)
 
-            # 유저 아이템 데이터 갱신
-            user_item.refresh_from_db()
+                # 유저 아이템 데이터 갱신
+                user_item.refresh_from_db()
 
-            # 유저 아이템 수량이 0이 아닐 경우 사용 여부 변경
-            if user_item.is_used is True and user_item.amount != 0:
-                user_item.is_used = False
-                user_item.save()
+                # 유저 아이템 수량이 0이 아닐 경우 사용 여부 변경
+                if user_item.is_used is True and user_item.amount != 0:
+                    user_item.is_used = False
+                    user_item.save()
 
-        else:
-            UserItem.objects.create(
-                user=user,
-                item=item,
-                amount=amount,
-            )
+            else:
+                UserItem.objects.create(
+                    user=user,
+                    item=item,
+                    amount=amount,
+                )
 
-        # 아이템 데이터 갱신
-        item.refresh_from_db()
+                # 아이템 데이터 갱신
+                item.refresh_from_db()
 
         return item
 
-    @transaction.atomic
     def use_item(self, item_id: int, amount: int, user: User, channel_id: int) -> UserItem:
         """
         이 함수는 아이템 아이디와 수량과 유저와 채널 아이디를 받아 검증 후 유저 아이템을 사용합니다.
@@ -259,21 +254,22 @@ class ItemService:
         if user_item.amount < amount:
             raise ValidationException("The amount of the user item is insufficient.")
 
-        # 유저 아이템 수량 차감 및 사용량 증가
-        UserItem.objects.filter(id=user_item.id).update(amount=F("amount") - amount, used_amount=F("used_amount") + amount)
+        with transaction.atomic():
+            # 유저 아이템 수량 차감 및 사용량 증가
+            UserItem.objects.filter(id=user_item.id).update(amount=F("amount") - amount, used_amount=F("used_amount") + amount)
 
-        # 유저 아이템 데이터 갱신
-        user_item.refresh_from_db()
+            # 유저 아이템 데이터 갱신
+            user_item.refresh_from_db()
 
-        # 유저 아이템 수량이 모두 사용되면 사용 여부 변경
-        if user_item.is_used is False and user_item.amount == 0:
-            user_item.is_used = True
-            user_item.save()
+            # 유저 아이템 수량이 모두 사용되면 사용 여부 변경
+            if user_item.is_used is False and user_item.amount == 0:
+                user_item.is_used = True
+                user_item.save()
 
-        # 유저 아이템 사용량 기록
-        UserItemLog.objects.create(
-            user_item=user_item,
-            used_at=timezone.now(),
-        )
+            # 유저 아이템 사용량 기록
+            UserItemLog.objects.create(
+                user_item=user_item,
+                used_at=timezone.now(),
+            )
 
         return user_item

@@ -19,7 +19,7 @@ class UserItemLogSelector:
 
     def get_user_item_logs_by_user_item_id(self, user_item_id: int) -> QuerySet[UserItemLog]:
         """
-        이 함수는 유저 아이템으로 유저 아이템 로그들을 조회합니다.
+        이 함수는 유저 아이템 아이디로 유저 아이템 로그들을 조회합니다.
 
         Args:
             user_item (UserItem): 유저 아이템 모델입니다.

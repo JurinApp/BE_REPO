@@ -1,5 +1,3 @@
-from django.db import transaction
-
 from jurin.channels.selectors.channels import ChannelSelector
 from jurin.common.exception.exceptions import NotFoundException
 from jurin.posts.models import Post
@@ -12,7 +10,6 @@ class PostService:
         self.post_selector = PostSelector()
         self.channel_selector = ChannelSelector()
 
-    @transaction.atomic
     def create_post(self, user: User, channel_id: int, main_title: str, sub_title: str, content: str, date: str) -> Post:
         """
         이 함수는 채널이 존재하는지 검증 후 게시글을 생성합니다
@@ -43,7 +40,6 @@ class PostService:
 
         return post
 
-    @transaction.atomic
     def update_post(self, user: User, post_id: int, channel_id: int, main_title: str, sub_title: str, content: str, date: str) -> Post:
         """
         이 함수는 채널과 게시글이 존재하는지 검증 후 게시글을 수정합니다
@@ -79,7 +75,6 @@ class PostService:
 
         return post
 
-    @transaction.atomic
     def delete_post(self, user: User, post_id: int, channel_id: int):
         """
         이 함수는 채널과 게시글이 존재하는지 검증 후 게시글을 삭제합니다
@@ -104,7 +99,6 @@ class PostService:
         # 게시글 삭제
         post.delete()
 
-    @transaction.atomic
     def delete_posts(self, user: User, channel_id: int, post_ids: list[int]):
         """
         이 함수는 채널과 게시글이 존재하는지 검증 후 채널의 게시글들을 삭제합니다

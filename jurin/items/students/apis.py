@@ -145,50 +145,62 @@ class StudentMyItemListAPI(APIView):
     authentication_classes = (CustomJWTAuthentication,)
     permission_classes = (StudentPermission,)
 
-    class Pagination(LimitOffsetPagination):
-        default_limit = 15
-
     class FilterSerializer(BaseSerializer):
-        limit = serializers.IntegerField(required=False, min_value=1, max_value=50, default=15)
-        offset = serializers.IntegerField(required=False, min_value=0)
         is_used = serializers.BooleanField(required=False, allow_null=True, default=None)
 
     class OutputSerializer(BaseSerializer):
-        id = serializers.IntegerField(source="item.id")
-        title = serializers.CharField(source="item.title")
-        image_url = serializers.URLField(source="item.image_url")
-        price = serializers.IntegerField(source="item.price")
-        remaining_amount = serializers.IntegerField(source="amount")
-        used_amount = serializers.IntegerField()
-        is_used = serializers.BooleanField()
+        used_item = inline_serializer(
+            many=True,
+            fields={
+                "id": serializers.IntegerField(source="item.id"),
+                "title": serializers.CharField(source="item.title"),
+                "image_url": serializers.URLField(source="item.image_url"),
+                "price": serializers.IntegerField(source="item.price"),
+                "used_amount": serializers.IntegerField(),
+            },
+        )
+        available_item = inline_serializer(
+            many=True,
+            fields={
+                "id": serializers.IntegerField(source="item.id"),
+                "title": serializers.CharField(source="item.title"),
+                "image_url": serializers.URLField(source="item.image_url"),
+                "price": serializers.IntegerField(source="item.price"),
+                "remaining_amount": serializers.IntegerField(source="amount"),
+            },
+        )
 
     @swagger_auto_schema(
         tags=["학생-아이템"],
         operation_summary="학생 나의 아이템 목록 조회",
         query_serializer=FilterSerializer,
         responses={
-            status.HTTP_200_OK: BaseResponseSerializer(data_serializer=OutputSerializer, pagination_serializer=True),
+            status.HTTP_200_OK: BaseResponseSerializer(data_serializer=OutputSerializer),
         },
     )
     def get(self, request: Request, channel_id: int) -> Response:
         """
         학생 권한의 유저가 자신의 아이템 목록을 조회합니다.
-        url: /teachers/api/v1/channels/<int:channel_id>/items/mine
+        url: /students/api/v1/channels/<int:channel_id>/items/mine
 
         Args:
             channel_id (int): 채널 고유 아이디
             FilterSerializer:
-                limit (int): 조회 개수
-                offset (int): 조회 시작 위치
                 is_used (bool): 사용 여부
         Returns:
             OutputSerializer:
-                id (int): 아이템 고유 아이디
-                title (str): 아이템 제목
-                image_url (str): 아이템 이미지 URL
-                price (int): 가격
-                remaining_amount (int): 남은 수량 (수량 - 사용 수량)
-                is_used (bool): 사용 여부
+                used_item (List[dict]):
+                    id (int): 아이템 고유 아이디
+                    title (str): 제목
+                    image_url (str): 이미지 URL
+                    price (int): 가격
+                    used_amount (int): 사용한 수량
+                available_item (List[dict]):
+                    id (int): 아이템 고유 아이디
+                    title (str): 제목
+                    image_url (str): 이미지 URL
+                    price (int): 가격
+                    remaining_amount (int): 남은 수량
         """
         filter_serializer = self.FilterSerializer(data=request.query_params)
         filter_serializer.is_valid(raise_exception=True)
@@ -202,21 +214,26 @@ class StudentMyItemListAPI(APIView):
 
         is_used = filter_serializer.validated_data.get("is_used")
 
-        # 유저 아이템 목록 조회
+        # 사용 여부에 따라 유저 아이템 목록 조회
         user_item_selector = UserItemSelector()
-        user_item = user_item_selector.get_user_item_queryset_with_item_by_user_and_is_used_order_by_is_used_desc(
-            user=request.user,
-            is_used=is_used,
-        )
+        used_user_item = available_user_item = []
 
-        pagination_items_data = get_paginated_data(
-            pagination_class=self.Pagination,
-            serializer_class=self.OutputSerializer,
-            queryset=user_item,
-            request=request,
-            view=self,
-        )
-        return create_response(pagination_items_data, status_code=status.HTTP_200_OK)
+        if is_used is not None:
+            if is_used is True:
+                used_user_item = user_item_selector.get_used_user_item_queryset_with_item_by_user(user=request.user)
+            elif is_used is False:
+                available_user_item = user_item_selector.get_available_user_item_queryset_with_item_by_user(user=request.user)
+        else:
+            used_user_item = user_item_selector.get_used_user_item_queryset_with_item_by_user(user=request.user)
+            available_user_item = user_item_selector.get_available_user_item_queryset_with_item_by_user(user=request.user)
+
+        user_item_data = self.OutputSerializer(
+            {
+                "used_item": used_user_item,
+                "available_item": available_user_item,
+            },
+        ).data
+        return create_response(user_item_data, status_code=status.HTTP_200_OK)
 
 
 class StudentMyItemDetailAPI(APIView):
@@ -295,7 +312,7 @@ class StudentMyItemDetailLogAPI(APIView):
     def get(self, request: Request, channel_id: int, item_id: int) -> Response:
         """
         학생 권한의 유저가 자신의 아이템 상세 로그를 조회합니다.
-        url: /teachers/api/v1/channels/<int:channel_id>/items/mine/<int:item_id>/logs
+        url: /students/api/v1/channels/<int:channel_id>/items/mine/<int:item_id>/logs
 
         Args:
             channel_id (int): 채널 고유 아이디

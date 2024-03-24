@@ -36,15 +36,11 @@ class StudentStockListAPI(APIView):
         id = serializers.IntegerField()
         name = serializers.CharField()
         days_range_rate = serializers.SerializerMethodField()
-        days_range_price = serializers.SerializerMethodField()
+        purchase_price = serializers.IntegerField()
 
         def get_days_range_rate(self, obj: dict) -> str:
             days_range_rate = (obj.prev_day_purchase_price - obj.purchase_price) / obj.purchase_price * 100
             return f"{days_range_rate:.2f}%"
-
-        def get_days_range_price(self, obj: dict) -> str:
-            days_range_price = obj.prev_day_purchase_price - obj.purchase_price
-            return f"{days_range_price}"
 
     @swagger_auto_schema(
         tags=["학생-주식"],
@@ -69,7 +65,7 @@ class StudentStockListAPI(APIView):
                 id (int): 주식 종목 아이디
                 name (str): 종목명
                 days_range_rate (str): 일일 변동률
-                days_range_price (str): 일일 변동 가격
+                purchase_price (int): 매수가
 
         """
         filter_serializer = self.FilterSerializer(data=request.query_params)
@@ -117,16 +113,12 @@ class StudentStockTradeTodayListAPI(APIView):
         amount = serializers.IntegerField()
         name = serializers.CharField(source="stock.name")
         days_range_rate = serializers.SerializerMethodField()
-        days_range_price = serializers.SerializerMethodField()
+        purchase_price = serializers.IntegerField(source="stock.purchase_price")
         trade_type = serializers.SerializerMethodField()
 
         def get_days_range_rate(self, obj: dict) -> str:
             days_range_rate = (obj.stock.prev_day_purchase_price - obj.stock.purchase_price) / obj.stock.purchase_price * 100
             return f"{days_range_rate:.2f}%"
-
-        def get_days_range_price(self, obj: dict) -> str:
-            days_range_price = obj.stock.prev_day_purchase_price - obj.stock.purchase_price
-            return f"{days_range_price}"
 
         def get_trade_type(self, obj: dict) -> str:
             if obj.trade_type == TradeType.BUY.value:
@@ -158,7 +150,7 @@ class StudentStockTradeTodayListAPI(APIView):
                 id (int): 주식 종목 아이디
                 name (str): 종목명
                 days_range_rate (str): 일일 변동률
-                days_range_price (str): 일일 변동 가격
+                purchase_price (int): 매수가
                 trade_type (str): 거래 타입 (BUY, SELL)
         """
         filter_serializer = self.FilterSerializer(data=request.query_params)
@@ -205,15 +197,11 @@ class StudentMyStockListAPI(APIView):
         name = serializers.CharField(source="stock.name")
         total_stock_amount = serializers.IntegerField()
         days_range_rate = serializers.SerializerMethodField()
-        days_range_price = serializers.SerializerMethodField()
+        purchase_price = serializers.IntegerField(source="stock.purchase_price")
 
         def get_days_range_rate(self, obj: dict) -> str:
             days_range_rate = (obj.stock.prev_day_purchase_price - obj.stock.purchase_price) / obj.stock.purchase_price * 100
             return f"{days_range_rate:.2f}%"
-
-        def get_days_range_price(self, obj: dict) -> str:
-            days_range_price = obj.stock.prev_day_purchase_price - obj.stock.purchase_price
-            return f"{days_range_price}"
 
     @swagger_auto_schema(
         tags=["학생-주식"],
@@ -239,7 +227,7 @@ class StudentMyStockListAPI(APIView):
                 name (str): 종목명
                 total_stock_amount (int): 총 주식 수량
                 days_range_rate (str): 일일 변동률
-                days_range_price (str): 일일 변동 가격
+                purchase_price (int): 매수가
         """
         filter_serializer = self.FilterSerializer(data=request.query_params)
         filter_serializer.is_valid(raise_exception=True)
@@ -506,16 +494,12 @@ class StudentMyStockTradeInfoListAPI(APIView):
         amount = serializers.IntegerField()
         price = serializers.IntegerField()
         days_range_rate = serializers.SerializerMethodField()
-        days_range_price = serializers.SerializerMethodField()
+        purchase_price = serializers.IntegerField(source="stock.purchase_price")
         trade_type = serializers.SerializerMethodField()
 
         def get_days_range_rate(self, obj: dict) -> str:
             days_range_rate = (obj.stock.prev_day_purchase_price - obj.stock.purchase_price) / obj.stock.purchase_price * 100
             return f"{days_range_rate:.2f}%"
-
-        def get_days_range_price(self, obj: dict) -> str:
-            days_range_price = obj.stock.prev_day_purchase_price - obj.stock.purchase_price
-            return f"{days_range_price}"
 
         def get_trade_type(self, obj: dict) -> str:
             if obj.trade_type == TradeType.BUY.value:
@@ -551,7 +535,7 @@ class StudentMyStockTradeInfoListAPI(APIView):
                 amount (int): 수량
                 price (int): 가격
                 days_range_rate (str): 일일 변동률
-                days_range_price (str): 일일 변동 가격
+                purchase_price (int): 매수가
                 trade_type (str): 거래 타입 (BUY, SELL)
         """
         filter_serializer = self.FilterSerializer(data=request.query_params)

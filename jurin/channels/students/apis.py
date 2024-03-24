@@ -6,6 +6,7 @@ from rest_framework.views import APIView
 
 from jurin.authentication.services import CustomJWTAuthentication
 from jurin.channels.selectors.channels import ChannelSelector
+from jurin.channels.selectors.user_channels import UserChannelSelector
 from jurin.channels.services import ChannelService
 from jurin.common.base.serializers import BaseResponseSerializer, BaseSerializer
 from jurin.common.exception.exceptions import NotFoundException
@@ -92,6 +93,37 @@ class StudentChannelAPI(APIView):
 class StudentChannelDetailAPI(APIView):
     authentication_classes = (CustomJWTAuthentication,)
     permission_classes = (StudentPermission,)
+
+    class OutputSerializer(BaseSerializer):
+        point = serializers.IntegerField()
+
+    @swagger_auto_schema(
+        tags=["학생-채널"],
+        operation_summary="학생 채널 상세 조회",
+        responses={
+            status.HTTP_200_OK: BaseResponseSerializer(data_serializer=OutputSerializer),
+        },
+    )
+    def get(self, request: Request, channel_id: int) -> Response:
+        """
+        학생 권한의 유저가 채널 상세 정보를 조회합니다.
+        url: /students/api/v1/channels/<int:channel_id>
+
+        Args:
+            channel_id (int): 채널 ID
+        Returns:
+            OutputSerializer:
+                point (int): 채널 포인트
+        """
+        # 유저가 채널을 가지고 있는지 검증
+        user_channel_selector = UserChannelSelector()
+        user_channel = user_channel_selector.get_user_channel_by_channel_id_and_user(channel_id=channel_id, user=request.user)
+
+        if user_channel is None:
+            raise NotFoundException(detail="User channel does not exist.", code="not_user_channel")
+
+        channel_data = self.OutputSerializer(user_channel).data
+        return create_response(channel_data, status_code=status.HTTP_200_OK)
 
     @swagger_auto_schema(
         tags=["학생-채널"],

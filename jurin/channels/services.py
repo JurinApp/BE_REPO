@@ -161,6 +161,9 @@ class ChannelService:
 
         # 채널에서 탈퇴 처리
         user_channel.delete()
+        user.user_stock_pivot.filter(channel_id=channel_id).delete()
+        user.user_item_pivot.filter(channel_id=channel_id).delete()
+        user.user_trade_info_pivot.filter(channel_id=channel_id).delete()
 
     def leave_users(self, user: User, channel_id: int, user_ids: list[int]):
         """
@@ -195,6 +198,9 @@ class ChannelService:
 
         # 채널에서 탈퇴 처리
         user_channels.delete()
+        user.user_stock_pivot.filter(channel_id=channel_id).delete()
+        user.user_item_pivot.filter(channel_id=channel_id).delete()
+        user.user_trade_info_pivot.filter(channel_id=channel_id).delete()
 
     def give_point_to_users(self, channel_id: int, user_ids: list[int], point: int, user: User) -> QuerySet[UserChannel]:
         """

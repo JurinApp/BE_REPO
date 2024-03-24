@@ -65,9 +65,9 @@ class UserTradeInfo(BaseModel):
 
 class UserStock(BaseModel):
     id = models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name="유저 주식 고유 아이디")
-    stock = models.ForeignKey(Stock, on_delete=models.CASCADE, related_name="user_stocks", verbose_name="주식 고유 아이디")
+    stock = models.ForeignKey(Stock, on_delete=models.CASCADE, related_name="user_stocks_info_pivot", verbose_name="주식 고유 아이디")
     total_stock_amount = models.PositiveIntegerField(verbose_name="총 주식 수량")
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="user_stocks", verbose_name="유저 고유 아이디")
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="user_stocks_info_pivot", verbose_name="유저 고유 아이디")
 
     def __str__(self):
         return f"[{self.id}]: {self.stock.name} - {self.user.username}"

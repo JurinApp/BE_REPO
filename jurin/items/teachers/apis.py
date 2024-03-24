@@ -30,6 +30,10 @@ class TeacherItemListAPI(APIView):
         id = serializers.IntegerField()
         title = serializers.CharField()
         image_url = serializers.URLField()
+        is_sold_out = serializers.SerializerMethodField()
+
+        def get_is_sold_out(self, obj) -> bool:
+            return obj.amount == 0
 
     @swagger_auto_schema(
         tags=["선생님-아이템"],
@@ -54,6 +58,7 @@ class TeacherItemListAPI(APIView):
                 id (int): 아이템 고유 아이디
                 title (str): 제목
                 image_url (str): 이미지 URL
+                is_sold_out (bool): 품절 여부
         """
         filter_serializer = self.FilterSerializer(data=request.query_params)
         filter_serializer.is_valid(raise_exception=True)

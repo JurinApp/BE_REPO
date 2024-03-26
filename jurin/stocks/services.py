@@ -1,3 +1,5 @@
+import math
+
 from django.db import transaction
 from django.db.models import F, Sum
 from django.utils import timezone
@@ -299,11 +301,13 @@ class StockService:
             raise NotFoundException(detail="Stock does not exist.", code="not_stock")
 
         with transaction.atomic():
-            # 유저 포인트 증가 (세금 계산)
+            # 유저 포인트 증가 (세금 계산, 소수점 버림)
             total_purchase_price = stock.purchase_price * amount
             total_tax_price = total_purchase_price * (stock.tax / 100)
             total_price = total_purchase_price - total_tax_price
+            total_price = math.floor(total_price)
             user_channel.point = F("point") + total_price
+
             user_channel.save()
             user_channel.refresh_from_db()
 

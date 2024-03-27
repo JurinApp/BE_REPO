@@ -77,7 +77,6 @@ class StockService:
         stock_id: int,
         channel_id: int,
         name: str,
-        purchase_price: int,
         tax: float,
         standard: str,
         content: str,
@@ -90,7 +89,6 @@ class StockService:
             stock_id (int): 주식 종목 아이디
             channel_id (int): 채널 아이디
             name (str): 종목명
-            purchase_price (int): 매수가
             tax (float): 세금
             standard (str): 기준
             content (str): 설명
@@ -122,24 +120,31 @@ class StockService:
             # 주식 종목 수정
             stock.name = name
             stock.tax = tax
-            stock.standard = standard
             stock.content = content
 
-            if stock.purchase_price != purchase_price:
-                # 다음 날 주식 매수가 업데이트
-                stock.next_day_purchase_price = purchase_price
+            # 기준이 변경되었을 때 다음날 주식 매수가 업데이트
+            if stock.standard != standard:
+                initial_value = stock.standard
+                final_value = standard
+                percentage = ((final_value - initial_value) / initial_value) * 100
+                next_day_purchase_price = stock.purchase_price + (stock.purchase_price * percentage / 100)
 
-                # 다음 날 주식 매수가 업데이트 시간 계산
-                tomarrow = timezone.now().date() + timezone.timedelta(days=1)
-                market_opening_at = timezone.datetime.combine(tomarrow, channel.market_opening_at)
-                delay = ((market_opening_at + timezone.timedelta(seconds=300)) - timezone.now()).seconds
+                if stock.next_day_purchase_price != next_day_purchase_price:
+                    stock.next_day_purchase_price = next_day_purchase_price
 
-                # 주식 매수가 작업 예약
-                updatae_stock_purchase_price_task.apply_async(
-                    args=[stock_id, channel_id],
-                    countdown=delay,
-                )
+                    # 다음 날 주식 매수가 업데이트 시간 계산
+                    tomarrow = timezone.now().date() + timezone.timedelta(days=1)
+                    market_opening_at = timezone.datetime.combine(tomarrow, channel.market_opening_at)
+                    delay = ((market_opening_at + timezone.timedelta(seconds=300)) - timezone.now()).seconds
 
+                    # 주식 매수가 작업 예약
+                    updatae_stock_purchase_price_task.apply_async(
+                        args=[stock_id, channel_id],
+                        countdown=delay,
+                    )
+
+                # 주식 기준 업데이트
+                stock.standard = standard
             stock.save()
         return stock
 

@@ -90,7 +90,7 @@ class TeacherStockListAPI(APIView):
         name = serializers.CharField(required=True, max_length=32)
         purchase_price = serializers.IntegerField(required=True, min_value=1)
         tax = serializers.FloatField(required=True, max_value=1, min_value=0)
-        standard = serializers.CharField(required=True, max_length=32)
+        standard = serializers.IntegerField(required=True, min_value=0)
         content = serializers.CharField(required=True)
 
     class PostOutputSerializer(BaseSerializer):
@@ -98,7 +98,7 @@ class TeacherStockListAPI(APIView):
         name = serializers.CharField()
         purchase_price = serializers.IntegerField()
         tax = serializers.FloatField()
-        standard = serializers.CharField()
+        standard = serializers.IntegerField()
         content = serializers.CharField()
 
     @swagger_auto_schema(
@@ -120,7 +120,7 @@ class TeacherStockListAPI(APIView):
                 name (str): 종목명
                 purchase_price (int): 매수가
                 tax (float): 세금
-                standard (str): 기준
+                standard (int): 기준
                 content (str): 설명
         Returns:
             PostOutputSerializer:
@@ -128,7 +128,7 @@ class TeacherStockListAPI(APIView):
                 name (str): 종목명
                 purchase_price (int): 매수가
                 tax (float): 세금
-                standard (str): 기준
+                standard (int): 기준
                 content (str): 설명
         """
         input_serializer = self.PostInputSerializer(data=request.data)
@@ -273,9 +273,8 @@ class TeacherStockDetailAPI(APIView):
         id = serializers.IntegerField()
         name = serializers.CharField()
         purchase_price = serializers.IntegerField()
-        next_day_purchase_price = serializers.IntegerField()
         tax = serializers.FloatField()
-        standard = serializers.CharField()
+        standard = serializers.IntegerField()
         content = serializers.CharField()
 
     @swagger_auto_schema(
@@ -298,9 +297,8 @@ class TeacherStockDetailAPI(APIView):
                 id (int): 주식 종목 아이디
                 name (str): 종목명
                 purchase_price (int): 매수가
-                next_day_purchase_price (int): 다음날 변경될 매수가
                 tax (float): 세금
-                standard (str): 기준
+                standard (int): 기준
                 content (str): 설명
         """
         # 채널이 존재하는지 검증
@@ -324,9 +322,8 @@ class TeacherStockDetailAPI(APIView):
 
     class InputSerializer(BaseSerializer):
         name = serializers.CharField(required=True, max_length=32)
-        purchase_price = serializers.IntegerField(required=True, min_value=1)
         tax = serializers.FloatField(required=True, max_value=1, min_value=0)
-        standard = serializers.CharField(required=True, max_length=32)
+        standard = serializers.IntegerField(required=True, min_value=0)
         content = serializers.CharField(required=True)
 
     @swagger_auto_schema(
@@ -347,18 +344,16 @@ class TeacherStockDetailAPI(APIView):
             stock_id (int): 주식 종목 아이디
             InputSerializer:
                 name (str): 종목명
-                purchase_price (int): 매수가
                 tax (float): 세금
-                standard (str): 기준
+                standard (int): 기준
                 content (str): 설명
         Returns:
             OutputSerializer:
                 id (int): 주식 종목 아이디
                 name (str): 종목명
                 purchase_price (int): 매수가
-                next_day_purchase_price (int): 다음날 변경될 매수가
                 tax (float): 세금
-                standard (str): 기준
+                standard (int): 기준
                 content (str): 설명
         """
         input_serializer = self.InputSerializer(data=request.data)

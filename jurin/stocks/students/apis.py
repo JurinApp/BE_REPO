@@ -262,7 +262,7 @@ class StudentStockDetailAPI(APIView):
                 "name": serializers.CharField(),
                 "purchase_price": serializers.IntegerField(),
                 "tax": serializers.FloatField(),
-                "standard": serializers.CharField(),
+                "standard": serializers.IntegerField(),
                 "content": serializers.CharField(),
             }
         )
@@ -299,7 +299,7 @@ class StudentStockDetailAPI(APIView):
                     name (str): 종목명
                     purchase_price (int): 매수가
                     tax (float): 세금
-                    standard (str): 기준
+                    standard (int): 기준
                     content (str): 내용
                 daily_price (list): 주식 종목의 일별 가격
                     trade_date (date): 거래 일자

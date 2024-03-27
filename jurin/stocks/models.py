@@ -12,7 +12,7 @@ class Stock(BaseModel):
     prev_day_purchase_price = models.PositiveIntegerField(verbose_name="전날 매수가")
     next_day_purchase_price = models.PositiveIntegerField(verbose_name="다음날 매수가")
     tax = models.FloatField(verbose_name="세금")
-    standard = models.CharField(max_length=32, verbose_name="기준")
+    standard = models.PositiveIntegerField(verbose_name="기준", default=0)
     content = models.TextField(verbose_name="내용")
     channel = models.ForeignKey(Channel, on_delete=models.CASCADE, related_name="stocks", verbose_name="채널 고유 아이디")
     user_trade_info = models.ManyToManyField(User, through="UserTradeInfo", verbose_name="유저 주식 정보", related_name="stock")

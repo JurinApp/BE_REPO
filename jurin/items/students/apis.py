@@ -75,7 +75,7 @@ class StudentItemListAPI(APIView):
             raise NotFoundException(detail="User channel does not exist.", code="not_user_channel")
 
         item_selector = ItemSelector()
-        items = item_selector.get_item_queryset_by_channel_id(channel_id=channel_id)
+        items = item_selector.get_undeleted_item_queryset_by_channel_id(channel_id=channel_id)
         pagination_items_data = get_paginated_data(
             pagination_class=self.Pagination,
             serializer_class=self.OutputSerializer,

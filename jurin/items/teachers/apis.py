@@ -71,7 +71,7 @@ class TeacherItemListAPI(APIView):
             raise NotFoundException(detail="Channel does not exist.", code="not_channel")
 
         item_selector = ItemSelector()
-        items = item_selector.get_item_queryset_by_channel_id(channel_id=channel_id)
+        items = item_selector.get_undeleted_item_queryset_by_channel_id(channel_id=channel_id)
         pagination_items_data = get_paginated_data(
             pagination_class=self.Pagination,
             serializer_class=self.OutputSerializer,
@@ -203,7 +203,7 @@ class TeacherItemDetailAPI(APIView):
 
         # 아이템이 존재하는지 검증
         item_selector = ItemSelector()
-        item = item_selector.get_item_by_id_and_channel_id(item_id=item_id, channel_id=channel_id)
+        item = item_selector.get_undeleted_item_by_id_and_channel_id(item_id=item_id, channel_id=channel_id)
 
         if item is None:
             raise NotFoundException(detail="Item does not exist.", code="not_item")

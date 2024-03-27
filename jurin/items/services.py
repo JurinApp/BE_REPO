@@ -85,7 +85,7 @@ class ItemService:
             raise ValidationException("You cannot register items during market hours.")
 
         # 아이템이 존재하는지 검증
-        item = self.item_selector.get_item_by_id_and_channel_id(item_id=item_id, channel_id=channel_id)
+        item = self.item_selector.get_undeleted_item_by_id_and_channel_id(item_id=item_id, channel_id=channel_id)
 
         if item is None:
             raise NotFoundException(detail="Item does not exist.", code="not_item")
@@ -120,13 +120,15 @@ class ItemService:
             raise ValidationException("You cannot register items during market hours.")
 
         # 아이템이 존재하는지 검증
-        item = self.item_selector.get_item_by_id_and_channel_id(item_id=item_id, channel_id=channel_id)
+        item = self.item_selector.get_undeleted_item_by_id_and_channel_id(item_id=item_id, channel_id=channel_id)
 
         if item is None:
             raise NotFoundException(detail="Item does not exist.", code="not_item")
 
         # 아이템 삭제
-        item.delete()
+        item.is_deleted = True
+        item.deleted_at = timezone.now()
+        item.save(update_fields=["is_deleted", "deleted_at"])
 
     def delete_items(self, channel_id: int, item_ids: list[int], user: User):
         """
@@ -148,13 +150,13 @@ class ItemService:
             raise ValidationException("You cannot register items during market hours.")
 
         # 아이템들이 존재하는지 검증
-        items = self.item_selector.get_item_queryset_by_ids_and_channel_id(item_ids=item_ids, channel_id=channel_id)
+        items = self.item_selector.get_undeleted_item_queryset_by_ids_and_channel_id(item_ids=item_ids, channel_id=channel_id)
 
         if items.count() != len(item_ids):
             raise NotFoundException(detail="Item does not exist.", code="not_item")
 
         # 아이템들 삭제
-        items.delete()
+        items.update(is_deleted=True, deleted_at=timezone.now())
 
     def buy_item(self, channel_id: int, item_id: int, price: int, amount: int, user: User) -> Item:
         """
@@ -176,7 +178,7 @@ class ItemService:
             raise NotFoundException(detail="User channel does not exist.", code="not_user_channel")
 
         # 아이템이 존재하는지 검증
-        item = self.item_selector.get_item_by_id_and_channel_id(item_id=item_id, channel_id=channel_id)
+        item = self.item_selector.get_undeleted_item_by_id_and_channel_id(item_id=item_id, channel_id=channel_id)
 
         if item is None:
             raise NotFoundException(detail="Item does not exist.", code="not_item")

@@ -12,6 +12,8 @@ class Item(BaseModel):
     image_url = models.URLField(max_length=512, verbose_name="이미지 URL")
     amount = models.PositiveIntegerField(verbose_name="수량")
     price = models.PositiveIntegerField(verbose_name="가격")
+    is_deleted = models.BooleanField(default=False, verbose_name="삭제 여부")
+    deleted_at = models.DateTimeField(null=True, blank=True, verbose_name="삭제 일시")
     channel = models.ForeignKey(Channel, on_delete=models.CASCADE, verbose_name="채널 고유 아이디", related_name="items")
     user_item = models.ManyToManyField(User, through="UserItem", verbose_name="유저 아이템", related_name="items")
 

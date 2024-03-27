@@ -198,9 +198,20 @@ class ChannelService:
 
         # 채널에서 탈퇴 처리
         user_channels.delete()
-        user.user_stock_pivot.filter(channel_id=channel_id).delete()
-        user.user_item_pivot.filter(channel_id=channel_id).delete()
-        user.user_trade_info_pivot.filter(channel_id=channel_id).delete()
+
+        # 채널에서 탈퇴한 유저들의 주식, 아이템, 거래 정보를 삭제
+        user_stocks_info_pivot = user.user_stocks_info_pivot.filter(stock__channel_id=channel_id)
+        user_item_pivot = user.user_item_pivot.filter(item__channel_id=channel_id)
+        user_trade_info_pivot = user.user_trade_info_pivot.filter(stock__channel_id=channel_id)
+
+        if user_stocks_info_pivot.exists():
+            user_stocks_info_pivot.delete()
+
+        if user_item_pivot.exists():
+            user_item_pivot.delete()
+
+        if user_trade_info_pivot.exists():
+            user_trade_info_pivot.delete()
 
     def give_point_to_users(self, channel_id: int, user_ids: list[int], point: int, user: User) -> QuerySet[UserChannel]:
         """
